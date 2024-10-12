@@ -19,8 +19,8 @@ from app.views import TopView, SignUpView, LoginView, HomeView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('',TopView.as_view()),
-    path('signup/',SignUpView.as_view()),
-    path('login/',LoginView.as_view()),
-    path('home/',HomeView.as_view())
+    path('',TopView.as_view(), name="top"),
+    path('signup/',SignUpView.as_view(), name="signup"),
+    path('login/',LoginView.as_view(), name="login"),
+    path('home/',HomeView.as_view(), name="home"),
 ]
