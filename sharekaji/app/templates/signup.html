@@ -6,7 +6,16 @@
     <title>Sharekaji</title>
 </head>
 <body>
-    <h1>Signup</h1>
+    <h1>新規アカウント登録</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div>名前/ニックネーム <input type="text" name="name" value="{{ form.name.value|default:'' }}"></div>
+        <div>メールアドレス <input type="email" name="email" value="{{ form.email.value|default:'' }}"></div>
+        <div>パスワード <input type="password" name="password1"></div>
+        <div>パスワード再入力 <input type="password" name="password2"></div>
+        <button type="submit">登録</button>
+    </form>
+    {{ form.errors }}
     <a href="{% url 'login' %}">ログイン画面に戻る</a>
 </body>
 </html>
