@@ -3,6 +3,9 @@ from django.views import View
 from app.forms import SignupForm, LoginForm
 from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.utils import timezone
+from datetime import timedelta
+from .models import Task  # Taskモデルを使う場合
 
 # Create your views here.
 class TopView(View):
@@ -41,8 +44,16 @@ class LoginView(View):
          })
 
 
-class HomeView(LoginRequiredMixin, View):
-    login_url = "login"
+class HomeView(View):
     def get(self, request):
-         return render(request, "home.html")
+        now = timezone.now() # 現在時刻を取得
+        tasks = Task.objects.all() # 全てのタスクを取得（ここでタスクは登録済みのものをデータベースから取得）
+        # リマインドの対象となるタスク（完了期限2時間前のもの）をフィルタリング
+        reminders = tasks.filter(due_datetime__lte=now + timedelta(hours=2), completion_status=False)
+        # コンテキストにデータを渡す
+        context = {
+            "tasks": tasks,
+            "reminders": reminders
+        }
+        return render(request, 'home.html', context)
 
