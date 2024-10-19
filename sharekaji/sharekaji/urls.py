@@ -15,13 +15,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from app.views import TopView, SignUpView, LoginView, HomeView
+from app.views import SignUpView, LoginView, HomeView, TodayTasksView, RecurringTasksView, TaskAnalysisView, MyPageView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('',LoginView.as_view(), name="login"),
     path('signup/',SignUpView.as_view(), name="signup"),
     path('home/',HomeView.as_view(), name="home"),
-    # 年と月をURLで指定してカレンダーを表示
     path('home/<int:year>/<int:month>/', HomeView.as_view(), name="home_with_date"),
+    path('today_tasks/', TodayTasksView.as_view(), name="today_tasks"),
+    path('recurring_tasks/', RecurringTasksView.as_view(), name="recurring_tasks"),
+    path('task_analysis/', TaskAnalysisView.as_view(), name="task_analysis"),
+    path('mypage/', MyPageView.as_view(), name="mypage"),
 ]

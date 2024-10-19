@@ -139,3 +139,19 @@ class HomeView(View):
             calendar.append(week + [''] * (7 - len(week)))
         
         return calendar
+
+class TodayTasksView(View):
+    def get(self, request):
+        return render(request, 'today_tasks.html')
+
+class RecurringTasksView(View):
+    def get(self, request):
+        return render(request, 'recurring_tasks.html')
+
+class TaskAnalysisView(View):
+    def get(self, request):
+        return render(request, 'task_analysis.html')
+
+class MyPageView(View):
+    def get(self, request):
+        return render(request, 'mypage.html')
