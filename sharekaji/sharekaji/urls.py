@@ -22,4 +22,6 @@ urlpatterns = [
     path('',LoginView.as_view(), name="login"),
     path('signup/',SignUpView.as_view(), name="signup"),
     path('home/',HomeView.as_view(), name="home"),
+    # 年と月をURLで指定してカレンダーを表示
+    path('home/<int:year>/<int:month>/', HomeView.as_view(), name="home_with_date"),
 ]
