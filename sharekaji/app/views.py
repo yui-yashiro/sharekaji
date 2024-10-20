@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate,login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
 from datetime import timedelta, datetime, date
-from .models import Task, User
+from .models import Task, User, Comment
 from django.contrib import messages
 
 # Create your views here.
@@ -142,7 +142,18 @@ class HomeView(View):
 
 class TodayTasksView(View):
     def get(self, request):
-        return render(request, 'today_tasks.html')
+        current_date = timezone.now()
+        return render(request, 'today_tasks.html',{
+            'current_date': current_date
+        })
+    def post_comment(request):
+        if request.method == "POST":
+           comment_text = request.POST.get("comment")
+           user = request.user
+           task_id = request.POST.get("task_id") 
+           task = Task.objects.get(pk=task_id)
+           Comment.objects.create(user=user, text=comment_text, task=task)
+        return redirect('today_tasks') 
 
 class RecurringTasksView(View):
     def get(self, request):
