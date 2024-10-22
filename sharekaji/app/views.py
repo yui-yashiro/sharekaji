@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect
 from django.views import View
-from app.forms import SignupForm, LoginForm
+from app.forms import SignupForm
 from django.contrib.auth import authenticate,login
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
 from datetime import timedelta, datetime, date
-from .models import Task, User, Comment
+from .models import Task, Comment, Recurrence
 from django.contrib import messages
+from django.views.generic.edit import CreateView
+from django.urls import reverse_lazy
 
 # Create your views here.
 class TopView(View):
@@ -155,9 +156,35 @@ class TodayTasksView(View):
            Comment.objects.create(user=user, text=comment_text, task=task)
         return redirect('today_tasks') 
 
-class RecurringTasksView(View):
+class RecurringTaskListView(View):
     def get(self, request):
-        return render(request, 'recurring_tasks.html')
+        recurrences = Recurrence.objects.filter(user=request.user)
+        context = {
+            'recurrences': recurrences
+        }
+        return render(request, 'recurring_tasks.html', context)
+
+class RecurringTaskCreateView(CreateView):
+    model = Recurrence
+    fields = ['task_name', 'user',  'start_date', 'due_time', 'estimated_time', 'recurrence_type', 'weekday', 'day_of_month', 'end_date']
+    template_name = 'add_recurring_tasks.html'
+    success_url = reverse_lazy('recurring_tasks')  # 登録後、周期タスク一覧にリダイレクト
+
+    # フォーム送信時にリクエストユーザーを保存する処理
+    def form_valid(self, form):
+        form.instance.user = self.request.user  # 現在のユーザーを設定
+        return super().form_valid(form)
+
+class Individual_TaskCreateView(CreateView):
+    model = Task
+    fields = ['task_name', 'user', 'estimated_time', 'due_datetime']
+    template_name = 'add_individual_tasks.html'
+    success_url = reverse_lazy('today_tasks')  # 登録後、本日のタスク一覧にリダイレクト
+
+    # フォーム送信時にリクエストユーザーを保存する処理
+    def form_valid(self, form):
+        form.instance.user = self.request.user  # 現在のユーザーを設定
+        return super().form_valid(form)
 
 class TaskAnalysisView(View):
     def get(self, request):

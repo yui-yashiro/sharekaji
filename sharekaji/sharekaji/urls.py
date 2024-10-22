@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from app.views import SignUpView, LoginView, HomeView, TodayTasksView, RecurringTasksView, TaskAnalysisView, MyPageView
+from app.views import SignUpView, LoginView, HomeView, TodayTasksView, RecurringTaskListView, RecurringTaskCreateView, Individual_TaskCreateView, TaskAnalysisView, MyPageView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,7 +24,9 @@ urlpatterns = [
     path('home/',HomeView.as_view(), name="home"),
     path('home/<int:year>/<int:month>/', HomeView.as_view(), name="home_with_date"),
     path('today_tasks/', TodayTasksView.as_view(), name="today_tasks"),
-    path('recurring_tasks/', RecurringTasksView.as_view(), name="recurring_tasks"),
+    path('recurring_tasks/', RecurringTaskListView.as_view(), name="recurring_tasks"),
     path('task_analysis/', TaskAnalysisView.as_view(), name="task_analysis"),
     path('mypage/', MyPageView.as_view(), name="mypage"),
+    path('add_recurring_tasks/', RecurringTaskCreateView.as_view(), name="add_recurring_tasks"),
+    path('add_individual_tasks/', Individual_TaskCreateView.as_view(), name="add_individual_tasks"),
 ]
