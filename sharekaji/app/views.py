@@ -193,11 +193,11 @@ class TaskAnalysisView(View):
         if not request.user.is_authenticated:
             return redirect('login')
             
-        if not hasattr(request.user, 'family') or not request.user.family:
+        if not request.user.family_id:
             return redirect('home')
         
         # 家族グループのリストを取得
-        family_members = request.user.family.members.all()
+        family_members = request.user.family_id.members.all()
 
         # 完了タスクを家族ごとに集計
         completed_tasks = Task.objects.filter(

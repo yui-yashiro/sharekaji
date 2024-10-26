@@ -2,8 +2,112 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>家事分析</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .hidden{
+            display:none;
+        }
+    </style>
 </head>
-<body>家事分析</h1>
+<body>
+    <h2>家事分析</h2>
+    <div>
+        <button onclick="showChart('completed')">完了</button>
+        <button onclick="showChart('incomplete')">未完了</button>
+    </div>
+
+    <div id="completedContainer">
+        <h3>直近１週間-完了タスク</h3>
+        <canvas id="completedChart" width="400" height="400"></canvas>
+    </div>
+
+    <div id="incompleteContainer" class='hidden'>
+        <h3>直近１週間-未完了タスク</h3>
+        <canvas id="incompleteChart" width="400" height="400"></canvas>
+    </div>
+
+    <script>
+        var completedLabels = {{ completed_labels|safe }};
+        var completedData = {{ completed_data|safe }};
+        var incompleteLabels = {{ incomplete_labels|safe }};
+        var incompleteData = {{ incomplete_data|safe }};
+
+        var ctx = document.getElementById('completedChart').getContext('2d');
+        var completedChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: completedLabels,
+                datasets: [{
+                    data: completedData,
+                    backgroundColor: ['#4BC0C0', '#FF6384', '#36A2EB'],
+                    borderColor: ['#4BC0C0', '#FF6384', '#36A2EB'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip:{
+                        callbacks:{
+                            label:function(context){
+                                var label = context.label || '';
+                                var value = context.raw || 0;
+                                return label + ':' + value.toFixed(2) + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        var incompletectx = document.getElementById('incompleteChart').getContext('2d');
+        var incompleteChart = new Chart(incompletectx, {
+            type: 'doughnut',
+            data: {
+                labels: incompleteLabels,
+                datasets: [{
+                    data: incompleteData,
+                    backgroundColor: ['#4BC0C0', '#FF6384', '#36A2EB'],
+                    borderColor: ['#4BC0C0', '#FF6384', '#36A2EB'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip:{
+                        callbacks:{
+                            label:function(context){
+                                var label = context.label || '';
+                                var value = context.raw || 0;
+                                return label + ':' + value.toFixed(2) + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        function showChart(type){
+            var completedContainer = document.getElementById('completedContainer');
+            var incompleteContainer = document.getElementById('incompleteContainer');
+
+            if(type === 'completed'){
+                completedContainer.classList.remove('hidden');
+                incompleteContainer.classList.add('hidden');
+            }else{
+                completedContainer.classList.add('hidden');
+                incompleteContainer.classList.remove('hidden');
+            }
+        }
+    </script>
 </body>
 </html>
