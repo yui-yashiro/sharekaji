@@ -1,21 +1,18 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
-from app.forms import SignupForm
-from django.contrib.auth import authenticate,login
+from app.forms import SignupForm, ProfileImageForm, AccountEditForm, FamilyEditForm, RecurringTaskForm, IndividualTaskForm
+from django.contrib.auth import authenticate, login, update_session_auth_hash
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import transaction
 from django.db.models import Count
 from django.utils import timezone
 from datetime import timedelta, datetime, date
-from .models import Task, Comment, Recurrence
-from django.contrib import messages
-from django.views.generic.edit import CreateView
+from .models import User, Family, Task, Comment, Recurrence
+from django.views.generic.edit import CreateView, UpdateView
 from django.urls import reverse_lazy
+import uuid
 
 # Create your views here.
-class TopView(View):
-    def get(self, request):
-        return render(request, "top.html")
-
 class SignUpView(View):
     def get(self, request):
          form = SignupForm()
@@ -26,9 +23,15 @@ class SignUpView(View):
         print(request.POST)
         form = SignupForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            with transaction.atomic():
+                user = form.save(commit=False)
+                if not user.family_id:
+                    family = Family.objects.create(name=f"{user.name}家")
+                    user.family_id = family
+            user.save()
             login(request, user)
-            return redirect("login")
+            return redirect("mypage")
+        
         return render(request, "signup.html", context={
              "form":form
          })
@@ -192,7 +195,6 @@ class TaskAnalysisView(View):
     def get(self, request):
         if not request.user.is_authenticated:
             return redirect('login')
-            
         if not request.user.family_id:
             return redirect('home')
         
@@ -232,6 +234,108 @@ class TaskAnalysisView(View):
         }
         return render(request, 'task_analysis.html',context)
 
-class MyPageView(View):
+class MyPageView(LoginRequiredMixin, View):
     def get(self, request):
-        return render(request, 'mypage.html')
+        user = request.user
+        family_members = user.family_id.members.all() if user.family_id else[]
+        image_form = ProfileImageForm(instance=user)
+        return render(request, 'mypage.html',{
+            'user':user,
+            'family_members':family_members,
+            'image_form':image_form
+        })
+    
+    def post(self, request):
+        image_form = ProfileImageForm(request.POST, request.FILES, instance=request.user)
+        if image_form.is_valid():
+            image_form.save()
+            return redirect('mypage')
+        
+        user = request.user
+        family_members = user.family_id.members.all() if user.family_id else[]
+        return render(request, 'mypage.html',{
+            'user':user,
+            'family_members':family_members,
+            'image_form':image_form
+        })
+
+class AccountEditView(LoginRequiredMixin, UpdateView):
+    model = User
+    form_class = AccountEditForm
+    template_name = 'account_edit.html'
+    success_url = reverse_lazy('mypage')
+
+    def get_object(self, queryset=None):
+        return self.request.user
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        update_session_auth_hash(self.request, self.object)
+        return response
+
+class FamilyEditView(LoginRequiredMixin, UpdateView):
+    model = Family
+    form_class = FamilyEditForm
+    template_name = 'family_edit.html'
+    success_url = reverse_lazy('mypage')
+
+    def get_object(self, queryset=None):
+        return self.request.user.family_id
+
+class FamilyInviteUrlView(LoginRequiredMixin, View):
+    def get(self, request):
+        user = request.user
+        if not user.family_id.invitate_url:
+            user.family_id.invitate_url = str(uuid.uuid4())
+            user.family_id.save()
+        return render(request, 'family_invite_url.html', {'family_invite_url': user.family_id.invitate_url})
+    
+class SignupInviteView(View):
+    def get(self, request, invite_code):
+        family = get_object_or_404(Family, invitate_url=invite_code)
+        form = SignupForm()
+        return render(request, 'signup_family_invite.html', {'form':form, 'family':family})
+    
+    def post(self, request, invite_code):
+        family = get_object_or_404(Family, invitate_url=invite_code)
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.family_id = family
+            user.save()
+            login(request, user)
+            return redirect('mypage')
+        return render(request, 'signup_family_invite.html', {'form':form, 'family':family})
+
+class AccountDeleteView(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'account_delete.html')
+    
+    def post(self, request):
+        user = request.user
+        if user.task_set.filter(completion_status=False).exists():
+            return render(request, 'account_delete.html', {
+                'error':'未完了のタスクがあるため、アカウント削除できません。'
+            })
+        user.delete()
+        return redirect('login')
+
+class RecurringTaskEditView(LoginRequiredMixin, UpdateView):
+    model = Recurrence
+    form_class = RecurringTaskForm
+    template_name = 'recurring_task_edit.html'
+    success_url = reverse_lazy('recurring_tasks')
+
+    def form_valid(self, form):
+        responce = super().form_valid(form)
+        return responce
+
+class IndividualTaskEditView(LoginRequiredMixin, UpdateView):
+    model = Task
+    form_class = IndividualTaskForm
+    template_name = 'indivisual_task_edit.html'
+    success_url = reverse_lazy('today_tasks')
+
+    def form_valid(self, form):
+        responce = super().form_valid(form)
+        return responce

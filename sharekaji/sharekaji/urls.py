@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from app.views import SignUpView, LoginView, HomeView, TodayTasksView, RecurringTaskListView, RecurringTaskCreateView, Individual_TaskCreateView, TaskAnalysisView, MyPageView
+from app.views import SignUpView, LoginView, HomeView, TodayTasksView, RecurringTaskListView, RecurringTaskCreateView, Individual_TaskCreateView, TaskAnalysisView, MyPageView, AccountEditView, FamilyEditView, SignupInviteView, FamilyInviteUrlView, AccountDeleteView, RecurringTaskEditView, IndividualTaskEditView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,4 +29,11 @@ urlpatterns = [
     path('mypage/', MyPageView.as_view(), name="mypage"),
     path('add_recurring_tasks/', RecurringTaskCreateView.as_view(), name="add_recurring_tasks"),
     path('add_individual_tasks/', Individual_TaskCreateView.as_view(), name="add_individual_tasks"),
+    path('account_edit/', AccountEditView.as_view(), name='account_edit'),
+    path('family_edit/', FamilyEditView.as_view(), name='family_edit'),
+    path('signup_invite/', SignupInviteView.as_view(), name='signup_invite'),
+    path('family_invite_url/', FamilyInviteUrlView.as_view(), name='family_invite_url'),
+    path('account_delete/', AccountDeleteView.as_view(), name='account_delete'),
+    path('recurring_task/<int:pk>/edit/', RecurringTaskEditView.as_view(), name='recurring_task_edit'),
+    path('individual_task/<int:pk>/edit/', IndividualTaskEditView.as_view(), name='indivisual_task_edit'),
 ]

@@ -84,7 +84,11 @@ DATABASES = {
 AUTH_USER_MODEL = "app.User"
 AUTHENTICATION_BACKENDS = [
     "app.backends.UserAuthBackend"
+    'django.contrib.auth.backends.ModelBackend',
 ]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
