@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}個別タスク登録{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h5>個別タスク登録</h5>
+        <form method="post" action="{% url 'add_individual_tasks' %}">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="task_name" class="form-label">家事名</label>
+                <input type="text" class="form-control" id="task_name" name="task_name" required>
+            </div>
+    
+            <div class="mb-3">
+                <label for="estimated_time" class="form-label">所要時間見込み</label>
+                <select class="form-control" id="estimated_time" name="estimated_time">
+                    <option value="0.5">0.5時間</option>
+                    <option value="1">1時間</option>
+                    <option value="1.5">1.5時間</option>
+                    <option value="2">2時間</option>
+                    <option value="2.5">2.5時間</option>
+                    <option value="3">3時間</option>
+                    <option value="3.5">3.5時間</option>
+                    <option value="4">4時間</option>
+                    <option value="4.5">4.5時間</option>
+                    <option value="5">5時間</option>
+                </select>
+            </div>
+    
+            <div class="mb-3">
+                <label for="due_time" class="form-label">対応完了期限</label>
+                <input type="time" class="form-control" id="due_time" name="due_time" required>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-primary">登録</button>
+        </form>
+        <a href="{% url 'today_tasks' %}" class="btn btn-secondary mt-3">戻る</a>
+    </div>    
+{% endblock %}
