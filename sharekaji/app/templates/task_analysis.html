@@ -1,18 +1,8 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>家事分析</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .hidden{
-            display:none;
-        }
-    </style>
-</head>
-<body>
-    <h2>家事分析</h2>
+{% extends 'base.html' %}
+
+{% block title %}家事分析{% endblock %}
+
+{% block content %}
     <div>
         <button onclick="showChart('completed')">完了</button>
         <button onclick="showChart('incomplete')">未完了</button>
@@ -27,7 +17,9 @@
         <h3>直近１週間-未完了タスク</h3>
         <canvas id="incompleteChart" width="400" height="400"></canvas>
     </div>
+{% endblock %}
 
+{% block javascript %}
     <script>
         var completedLabels = {{ completed_labels|safe }};
         var completedData = {{ completed_data|safe }};
@@ -109,5 +101,4 @@
             }
         }
     </script>
-</body>
-</html>
+{% endblock %}
