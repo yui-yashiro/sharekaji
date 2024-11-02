@@ -67,8 +67,46 @@ class HomeView(View):
             year = now.year
             month = now.month
 
-         # 自身に割り振られたタスクを取得
+        # 個別タスクを取得してイベントデータに追加
         tasks = Task.objects.filter(user=request.user)
+        event_data = [
+            {
+                "title": task.task_name,
+                "start": task.due_datetime.isoformat() if task.due_datetime else None
+            }
+            for task in tasks
+        ]
+
+        # 繰り返しタスクを取得してイベントデータに追加
+        recurrences = Recurrence.objects.filter(user=request.user)
+        for recurrence in recurrences:
+            if recurrence.recurrence_type == 1: # 毎日繰り返し
+                for day in range((recurrence.end_date - recurrence.start_date).days + 1):
+                    date = recurrence.start_date + timedelta(days=day)
+                    event_data.append({
+                        "title":recurrence.task_name,
+                        "start":datetime.combine(date, recurrence.due_time).isoformat()
+                    })
+            elif recurrence.recurrence_type == 2: # 週ごとに繰り返し
+                current_date = recurrence.start_date
+                while current_date <= recurrence.end_date:
+                    if current_date.weekday() == recurrence.weekday:
+                        event_data.append({
+                        "title":recurrence.task_name,
+                        "start":datetime.combine(current_date, recurrence.due_time).isoformat()
+                        })
+                    current_date += timedelta(days=1)
+            elif recurrence.recurrence_type == 3: # 月ごとに繰り返し
+                current_date = recurrence.start_date
+                while current_date <= recurrence.end_date:
+                    if current_date.day == recurrence.day_of_month:
+                        event_data.append({
+                        "title":recurrence.task_name,
+                        "start":datetime.combine(current_date, recurrence.due_time).isoformat()
+                        })
+                    current_date = (current_date.replace(day=1) + timedelta(days=32)).replace(day=1)
+
+
 
         # リマインドの対象となるタスク（完了期限2時間前のもの）をフィルタリング
         reminders = tasks.filter(due_datetime__lte=now + timedelta(hours=2), completion_status=False)
@@ -76,80 +114,40 @@ class HomeView(View):
         # 他の家族が完了したタスクを取得
         family_notifications = Task.objects.filter(user__isnull=False, completion_status=True)
 
-         # 完了していない家事
+        # 完了していない家事
         incomplete_tasks = tasks.filter(completion_status=False)
 
         # 最近完了した家事（最新3件を表示する）
         completed_tasks = tasks.filter(completion_status=True).order_by('-completion_datetime')[:3]
 
-        # カレンダーの日付を取得
-        calendar_data = self.get_calendar_dates(year, month, tasks)
-
-        # 前月・翌月の計算
-        prev_month_date = datetime(year, month, 1) - timedelta(days=1)
-        next_month_date = datetime(year, month, 28) + timedelta(days=4)
-
-        prev_month_year = prev_month_date.year
-        prev_month_month = prev_month_date.month
-
-        next_month_year = next_month_date.year
-        next_month_month = next_month_date.month
-
         # コンテキストにデータを渡す
         context = {
+            "event_data": event_data,
             "tasks": tasks,
             "family_notifications": family_notifications,
             "reminders": reminders,
             "incomplete_tasks": incomplete_tasks, 
             "completed_tasks": completed_tasks, 
-            'calendar': calendar_data,
             'current_year': year,
             'current_month': month,
-            'prev_month_year': prev_month_year,
-            'prev_month_month': prev_month_month,
-            'next_month_year': next_month_year,
-            'next_month_month': next_month_month,
         }
         return render(request, 'home.html', context)
 
-# カレンダーの日付を取得する関数
-    def get_calendar_dates(self, year, month,tasks):
-        # 月の初めの曜日と月の日数を取得
-        first_day = date(year, month, 1)
-        last_day = (first_day.replace(month=month % 12 + 1) - timedelta(days=1)).day
-        
-        # カレンダー表示に必要な日付を作成
-        calendar = []
-        week = []
-        
-        # 最初の週の空セルを追加
-        start_weekday = first_day.weekday()  # 0 = 月曜
-        for _ in range((start_weekday + 1) % 7):
-            week.append('')
-        
-        # 日付を追加
-        for day in range(1, last_day + 1):
-            day_tasks = tasks.filter(scheduled_datetime__day=day)
-            day_display = f"{day}"  # 基本は日付を表示
-            if day_tasks.exists():
-                # タスクがある場合、その情報を日付に付与
-                task_info = "<br>".join([task.task_name for task in day_tasks])
-                day_display += f"<br>{' '.join([task.task_name for task in day_tasks])}"
-            week.append(day)
-            if len(week) == 7:
-                calendar.append(week)
-                week = []
-        
-        # 最後の週を追加
-        if week:
-            calendar.append(week + [''] * (7 - len(week)))
-        
-        return calendar
 
 class TodayTasksView(View):
     def get(self, request):
         current_date = timezone.now()
+
+        tasks = Task.objects.filter(
+            user=request.user,
+            scheduled_datetime__date=current_date.date()
+        )
+
+        for task in tasks:
+            task.estimated_time_hours = task.estimated_time / 60
+        
         return render(request, 'today_tasks.html',{
+            'tasks':tasks,
             'current_date': current_date
         })
     def post_comment(request):

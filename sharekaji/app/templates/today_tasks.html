@@ -59,29 +59,29 @@
 
     <!-- 「個別タスクを追加する」ボタンは常時表示 -->
     <div class="d-flex justify-content-end">
-        <a href="{% url 'add_individual_tasks' %}" button class="btn btn-success">＋個別タスクを追加する</a>
+        <a href="{% url 'add_individual_tasks' %}" class="btn btn-success">＋個別タスクを追加する</a>
     </div>
 
     <!-- タスクが存在する場合の表示 -->
     {% if tasks %}
+        {% for task in tasks %}
     <div class="task-box">
         <div class="task-details">
-            <p><strong>家事内容：</strong> {{ tasks.task_name }}</p>
-            <p><strong>担当者：</strong> {{ tasks.assignee }}</p>
-            <p><strong>所要時間見込み：</strong> {{ tasks.estimated_time }}時間</p>
-            <p><strong>対応完了期限：</strong> {{ tasks.due_datetime|date:"H:i" }}</p>
+            <p><strong>家事内容：</strong> {{ task.task_name }}</p>
+            <p><strong>担当者：</strong> {{ task.user.name }}</p>
+            <p><strong>所要時間見込み：</strong> {{ task.estimated_time_hours|floatformat:1 }}時間</p>
+            <p><strong>対応完了期限：</strong> {{ task.due_datetime|date:"H:i" }}</p>
         </div>
-
         <div class="row">
             <div class="col-md-6">
                 <label for="status"><strong>ステータス：</strong></label>
                 <select id="status" class="form-select">
-                    <option value="complete" {% if tasks.status == "完了" %}selected{% endif %}>完了</option>
-                    <option value="incomplete" {% if tasks.status == "未完了" %}selected{% endif %}>未完了</option>
+                    <option value="complete" {% if task.completion_status %}selected{% endif %}>完了</option>
+                    <option value="incomplete" {% if not task.completion_status %}selected{% endif %}>未完了</option>
                 </select>
             </div>
             <div class="col-md-6">
-                <p><strong>担当者コメント：</strong> {{ tasks.comment }}</p>
+                <p><strong>担当者コメント：</strong> {{ task.comment }}</p>
             </div>
         </div>
 
@@ -100,30 +100,26 @@
         </div>
 
         <div class="comment-box mt-3">
-    {% if comment %}
+            {% if comment %}
         <p><strong>{{ comment.user_name }}:</strong> {{ comment.text }}</p>  <!-- コメントした人の名前とコメント内容を表示 -->
-    {% endif %}
-</div>
+            {% endif %}
+        </div>
 
-<!-- コメントを入力するバー -->
+        <!-- コメントを入力するバー -->
         <div class="comment-bar mt-3">
-          <form method="post" action="{% url 'post_comment' %}">
+            <form method="post" action="{% url 'post_comment' %}">
               {% csrf_token %}
               <div class="form-group">
                   <input type="text" name="comment" class="form-control" placeholder="コメントを入力してください...">
               </div>
               <button type="submit" class="btn btn-primary mt-2">送信</button>
-          </form>
+            </form>
         </div>
-
-        <form class="mt-3">
-            <textarea class="form-control" placeholder="コメントを入力してください..."></textarea>
-            <button type="submit" class="btn btn-primary mt-2">送信</button>
-        </form>
     </div>
+    {% endfor %}
     {% else %}
-    <!-- タスクがない場合 -->
-    <p>現在、タスクがありません。新しいタスクを追加してください。</p>
+        <!-- タスクがない場合 -->
+        <p>現在、タスクがありません。新しいタスクを追加してください。</p>
     {% endif %}
 </div>
 

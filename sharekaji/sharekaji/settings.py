@@ -84,7 +84,6 @@ DATABASES = {
 AUTH_USER_MODEL = "app.User"
 AUTHENTICATION_BACKENDS = [
     "app.backends.UserAuthBackend"
-    'django.contrib.auth.backends.ModelBackend',
 ]
 
 MEDIA_URL = '/media/'

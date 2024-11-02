@@ -50,6 +50,7 @@
     <div class="container mt-4">
         <h5>周期タスク登録</h5>
         <form method="post" action="{% url 'add_recurring_tasks' %}">
+             {% csrf_token %}
             <div class="mb-3">
                 <label for="task_name" class="form-label">家事名</label>
                 <input type="text" class="form-control" id="task_name" name="task_name" required>

@@ -61,7 +61,7 @@ class AccountEditForm(forms.ModelForm):
 class FamilyEditForm(forms.ModelForm):
     class Meta:
         model = Family
-        fields = ['name', 'new_name']
+        fields = ['name']
 
 class ProfileImageForm(forms.ModelForm):
     class Meta:
