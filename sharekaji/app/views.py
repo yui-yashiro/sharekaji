@@ -6,7 +6,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.db.models import Count
 from django.utils import timezone
-from datetime import timedelta, datetime, date
+from datetime import timedelta, datetime
 from .models import User, Family, Task, Comment, Recurrence
 from django.views.generic.edit import CreateView, UpdateView
 from django.urls import reverse_lazy
@@ -16,7 +16,7 @@ import uuid
 class SignUpView(View):
     def get(self, request):
          form = SignupForm()
-         return render(request, "signup.html", context={
+         return render(request, "accounts/signup.html", context={
              "form":form
          })
     def post(self, request):
@@ -32,14 +32,14 @@ class SignUpView(View):
             login(request, user)
             return redirect("mypage")
         
-        return render(request, "signup.html", context={
+        return render(request, "accounts/signup.html", context={
              "form":form
          })
 
 
 class LoginView(View):
     def get(self, request):
-         return render(request, "login.html")
+         return render(request, "accounts/login.html")
     
     def post(self, request):
         print(request.POST)
@@ -52,7 +52,7 @@ class LoginView(View):
             return redirect("home")  # ホーム画面へリダイレクト
 
         # 認証が失敗した場合
-        return render(request, "login.html", context={
+        return render(request, "accounts/login.html", context={
             "error": "メールアドレスまたはパスワードが間違っています"  # エラーメッセージを表示
         })
 
@@ -131,7 +131,7 @@ class HomeView(View):
             'current_year': year,
             'current_month': month,
         }
-        return render(request, 'home.html', context)
+        return render(request, 'tasks/home.html', context)
 
 
 class TodayTasksView(View):
@@ -146,7 +146,7 @@ class TodayTasksView(View):
         for task in tasks:
             task.estimated_time_hours = task.estimated_time / 60
         
-        return render(request, 'today_tasks.html',{
+        return render(request, 'tasks/today_tasks.html',{
             'tasks':tasks,
             'current_date': current_date
         })
@@ -165,12 +165,12 @@ class RecurringTaskListView(View):
         context = {
             'recurrences': recurrences
         }
-        return render(request, 'recurring_tasks.html', context)
+        return render(request, 'tasks/recurring_tasks.html', context)
 
 class RecurringTaskCreateView(CreateView):
     model = Recurrence
     fields = ['task_name', 'user',  'start_date', 'due_time', 'estimated_time', 'recurrence_type', 'weekday', 'day_of_month', 'end_date']
-    template_name = 'add_recurring_tasks.html'
+    template_name = 'tasks/add_recurring_tasks.html'
     success_url = reverse_lazy('recurring_tasks')  # 登録後、周期タスク一覧にリダイレクト
 
     # フォーム送信時にリクエストユーザーを保存する処理
@@ -181,7 +181,7 @@ class RecurringTaskCreateView(CreateView):
 class Individual_TaskCreateView(CreateView):
     model = Task
     fields = ['task_name', 'user', 'estimated_time', 'due_datetime']
-    template_name = 'add_individual_tasks.html'
+    template_name = 'tasks/add_individual_tasks.html'
     success_url = reverse_lazy('today_tasks')  # 登録後、本日のタスク一覧にリダイレクト
 
     # フォーム送信時にリクエストユーザーを保存する処理
@@ -230,14 +230,14 @@ class TaskAnalysisView(View):
             'incomplete_data': incomplete_data,
             'incomplete_labels': incomplete_labels,
         }
-        return render(request, 'task_analysis.html',context)
+        return render(request, 'tasks/task_analysis.html',context)
 
 class MyPageView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
         family_members = user.family_id.members.all() if user.family_id else[]
         image_form = ProfileImageForm(instance=user)
-        return render(request, 'mypage.html',{
+        return render(request, 'accounts/mypage.html',{
             'user':user,
             'family_members':family_members,
             'image_form':image_form
@@ -251,7 +251,7 @@ class MyPageView(LoginRequiredMixin, View):
         
         user = request.user
         family_members = user.family_id.members.all() if user.family_id else[]
-        return render(request, 'mypage.html',{
+        return render(request, 'accounts/mypage.html',{
             'user':user,
             'family_members':family_members,
             'image_form':image_form
@@ -260,8 +260,8 @@ class MyPageView(LoginRequiredMixin, View):
 class AccountEditView(LoginRequiredMixin, UpdateView):
     model = User
     form_class = AccountEditForm
-    template_name = 'account_edit.html'
-    success_url = reverse_lazy('mypage')
+    template_name = 'accounts/account_edit.html'
+    success_url = reverse_lazy('accounts/mypage')
 
     def get_object(self, queryset=None):
         return self.request.user
@@ -274,8 +274,8 @@ class AccountEditView(LoginRequiredMixin, UpdateView):
 class FamilyEditView(LoginRequiredMixin, UpdateView):
     model = Family
     form_class = FamilyEditForm
-    template_name = 'family_edit.html'
-    success_url = reverse_lazy('mypage')
+    template_name = 'accounts/family_edit.html'
+    success_url = reverse_lazy('accounts/mypage')
 
     def get_object(self, queryset=None):
         return self.request.user.family_id
@@ -286,13 +286,13 @@ class FamilyInviteUrlView(LoginRequiredMixin, View):
         if not user.family_id.invitate_url:
             user.family_id.invitate_url = str(uuid.uuid4())
             user.family_id.save()
-        return render(request, 'family_invite_url.html', {'family_invite_url': user.family_id.invitate_url})
+        return render(request, 'accounts/family_invite_url.html', {'family_invite_url': user.family_id.invitate_url})
     
 class SignupInviteView(View):
     def get(self, request, invite_code):
         family = get_object_or_404(Family, invitate_url=invite_code)
         form = SignupForm()
-        return render(request, 'signup_family_invite.html', {'form':form, 'family':family})
+        return render(request, 'accounts/signup_family_invite.html', {'form':form, 'family':family})
     
     def post(self, request, invite_code):
         family = get_object_or_404(Family, invitate_url=invite_code)
@@ -303,16 +303,16 @@ class SignupInviteView(View):
             user.save()
             login(request, user)
             return redirect('mypage')
-        return render(request, 'signup_family_invite.html', {'form':form, 'family':family})
+        return render(request, 'accounts/signup_family_invite.html', {'form':form, 'family':family})
 
 class AccountDeleteView(LoginRequiredMixin, View):
     def get(self, request):
-        return render(request, 'account_delete.html')
+        return render(request, 'accounts/account_delete.html')
     
     def post(self, request):
         user = request.user
         if user.task_set.filter(completion_status=False).exists():
-            return render(request, 'account_delete.html', {
+            return render(request, 'accounts/account_delete.html', {
                 'error':'未完了のタスクがあるため、アカウント削除できません。'
             })
         user.delete()
@@ -321,19 +321,19 @@ class AccountDeleteView(LoginRequiredMixin, View):
 class RecurringTaskEditView(LoginRequiredMixin, UpdateView):
     model = Recurrence
     form_class = RecurringTaskForm
-    template_name = 'recurring_task_edit.html'
+    template_name = 'tasks/recurring_task_edit.html'
     success_url = reverse_lazy('recurring_tasks')
 
     def form_valid(self, form):
-        responce = super().form_valid(form)
-        return responce
+        response = super().form_valid(form)
+        return response
 
 class IndividualTaskEditView(LoginRequiredMixin, UpdateView):
     model = Task
     form_class = IndividualTaskForm
-    template_name = 'indivisual_task_edit.html'
+    template_name = 'tasks/individual_task_edit.html'
     success_url = reverse_lazy('today_tasks')
 
     def form_valid(self, form):
-        responce = super().form_valid(form)
-        return responce
+        response = super().form_valid(form)
+        return response
