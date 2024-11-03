@@ -235,10 +235,12 @@ class TaskAnalysisView(View):
 class MyPageView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
+        family = user.family_id if user.family_id else None
         family_members = user.family_id.members.all() if user.family_id else[]
         image_form = ProfileImageForm(instance=user)
         return render(request, 'accounts/mypage.html',{
             'user':user,
+            'family': family,
             'family_members':family_members,
             'image_form':image_form
         })
@@ -247,12 +249,17 @@ class MyPageView(LoginRequiredMixin, View):
         image_form = ProfileImageForm(request.POST, request.FILES, instance=request.user)
         if image_form.is_valid():
             image_form.save()
+            print("Uploaded image URL:", user.profile_image.url) 
             return redirect('mypage')
+        else:
+            print("Form errors:", image_form.errors)
         
         user = request.user
+        family = user.family_id if user.family_id else None
         family_members = user.family_id.members.all() if user.family_id else[]
         return render(request, 'accounts/mypage.html',{
             'user':user,
+            'family': family,
             'family_members':family_members,
             'image_form':image_form
         })

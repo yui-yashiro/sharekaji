@@ -17,7 +17,7 @@ class User(AbstractUser):
     email = models.EmailField(max_length=256, unique=True) # メールアドレス
     password = models.CharField(max_length=100) # パスワード
     family_id = models.ForeignKey('Family', on_delete=models.SET_NULL, null=True, related_name="members")  # 家族ID
-    profile_image = models.CharField(max_length=255, blank=True, null=True)  # プロフィール画像
+    profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True)   # プロフィール画像
     family_relationship = models.CharField(max_length=32, blank=True, null=True)  # 続柄
     created_at = models.DateTimeField(auto_now_add=True) # アカウント作成日時
     updated_at = models.DateTimeField(auto_now=True) # 最終更新日時
