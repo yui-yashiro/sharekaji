@@ -1,3 +1,4 @@
+/* マイページプロフィール部分 */
 .profile-container {
     display: flex;
     align-items: center;
@@ -8,4 +9,59 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
+
+/* ログイン画面 */
+.container-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* 画面全体の高さに対して中央に配置 */
+}
+
+.center-content {
+    text-align: center;
+    border: 1px solid #ccc;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+    max-width: 400px;
+    width: 100%;
+    margin: 20px auto;
+}
+/* ログイン・新規登録入力フォームの余白 */
+.form-group {
+    margin-bottom: 10px; /* フォーム要素間の間隔を追加 */
+}
+
+html, body {
+    height: 100%;
+}
+
+body.has-navbar {
+    padding-top: 80px; 
+}
+
+.container {
+    padding-top: 100px; /* 固定ナビゲーションバーと重ならないようにパディングを追加 */
+}
+
+/* ログイン・新規登録入力フォームの余白 */
+.form-group {
+    margin-bottom: 15px; /* フォーム要素間の間隔を広げる */
+}
+
+/* ログインボタンと新規登録リンクの間隔を広げる */
+button[type="submit"] {
+    margin-bottom: 20px; /* ログインボタンの下に余白を追加 */
+}
+
+a {
+    display: block;
+    margin-top: 10px; /* 新規登録リンクの上に余白を追加 */
+}
+
+html, body {
+    height: 100%;
 }

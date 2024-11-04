@@ -3,17 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sharekaji</title>
+    <title>シェアカジ</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
 </head>
 <body>
-    <h1>シェアカジ</h1>
-    <form method="post">
-        {% csrf_token %}
-        <div>メールアドレス <input type="email" name="email" value="{{ form.email.value|default:'' }}"></div>
-        <div>パスワード <input type="password" name="password"></div>
-        <button type="submit">ログイン</button>
-    </form>
-    {{ form.errors }}
-    <a href="{% url 'signup' %}">新規アカウント登録</a>
+    <div class="container-center">
+        <div class="center-content">
+            <h2>シェアカジ</h2>
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    メールアドレス <input type="email" name="email" value="{{ form.email.value|default:'' }}">
+                </div>
+                <div class="form-group">
+                    パスワード <input type="password" name="password">
+                </div>
+                <button type="submit">ログイン</button>
+            </form>
+            {{ form.errors }}
+            <a href="{% url 'signup' %}">新規アカウント登録</a>
+        </div>
+    </div>
 </body>
 </html>
