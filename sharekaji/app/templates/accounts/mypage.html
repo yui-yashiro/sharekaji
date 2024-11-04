@@ -9,8 +9,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h4><strong>マイページ</strong></h4>
+<div class="container">
+    <h4 class="page-title"><strong>マイページ</strong></h4>
 
     <form method="post" enctype="multipart/form-data" action="{% url 'mypage' %}">
         {% csrf_token%}
