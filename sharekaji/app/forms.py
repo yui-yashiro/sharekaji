@@ -33,6 +33,7 @@ class LoginForm(forms.Form):
         return self.cleaned_data
 
 class AccountEditForm(forms.ModelForm):
+    password = forms.CharField(required=False, widget=forms.PasswordInput())
     new_password = forms.CharField(required=False, widget=forms.PasswordInput())
     new_password_confirm = forms.CharField(required=False, widget=forms.PasswordInput())
 
@@ -59,9 +60,18 @@ class AccountEditForm(forms.ModelForm):
         return user
     
 class FamilyEditForm(forms.ModelForm):
+    new_family_name = forms.CharField(label='新しい家族登録名', required=True)
+
     class Meta:
         model = Family
-        fields = ['name']
+        fields = []
+    
+    def save(self, commit=True):
+        family = super().save(commit=False)
+        family.name = self.cleaned_data['new_family_name']
+        if commit:
+            family.save()
+        return family
 
 class ProfileImageForm(forms.ModelForm):
     class Meta:

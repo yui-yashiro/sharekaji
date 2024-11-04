@@ -268,7 +268,7 @@ class AccountEditView(LoginRequiredMixin, UpdateView):
     model = User
     form_class = AccountEditForm
     template_name = 'accounts/account_edit.html'
-    success_url = reverse_lazy('accounts/mypage')
+    success_url = reverse_lazy('mypage')
 
     def get_object(self, queryset=None):
         return self.request.user
@@ -282,7 +282,7 @@ class FamilyEditView(LoginRequiredMixin, UpdateView):
     model = Family
     form_class = FamilyEditForm
     template_name = 'accounts/family_edit.html'
-    success_url = reverse_lazy('accounts/mypage')
+    success_url = reverse_lazy('mypage')
 
     def get_object(self, queryset=None):
         return self.request.user.family_id
