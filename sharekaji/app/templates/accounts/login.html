@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>シェアカジ</title>
+    <title>ログイン画面</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/layout.css' %}">
 </head>
@@ -21,7 +21,17 @@
                 </div>
                 <button type="submit">ログイン</button>
             </form>
-            {{ form.errors }}
+
+            {% if form.errors %}
+                <div class="error-message">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
             <a href="{% url 'signup' %}">新規アカウント登録</a>
         </div>
     </div>

@@ -32,24 +32,7 @@
 }
 /* ログイン・新規登録入力フォームの余白 */
 .form-group {
-    margin-bottom: 10px; /* フォーム要素間の間隔を追加 */
-}
-
-html, body {
-    height: 100%;
-}
-
-body.has-navbar {
-    padding-top: 80px; 
-}
-
-.container {
-    padding-top: 100px; /* 固定ナビゲーションバーと重ならないようにパディングを追加 */
-}
-
-/* ログイン・新規登録入力フォームの余白 */
-.form-group {
-    margin-bottom: 15px; /* フォーム要素間の間隔を広げる */
+    margin-bottom: 15px; /* フォーム要素間の間隔を追加 */
 }
 
 /* ログインボタンと新規登録リンクの間隔を広げる */
@@ -62,6 +45,33 @@ a {
     margin-top: 10px; /* 新規登録リンクの上に余白を追加 */
 }
 
+/* 全体の高さ設定 */
 html, body {
     height: 100%;
+}
+
+body.has-navbar {
+    padding-top: 80px; 
+}
+
+.container {
+    padding-top: 100px; /* 固定ナビゲーションバーと重ならないようにパディングを追加 */
+}
+
+/* エラーメッセージをまとめて赤くする設定 */
+.error-message {
+    color: red;
+    font-weight: bold; /* 太字にする */
+    margin-top: 10px; /* 少し上に余白をつける */
+}
+
+/* エラーメッセージのリスト（項目の集まり）の設定 */
+.error-message ul {
+    list-style: none; /* 黒い点や番号を消す */
+    padding: 0; /* リストの周りの空白をなくす */
+}
+
+.error-message li {
+    color: red; /* リストの中の文字を赤くする */
+    font-weight: bold; /* リストの中の文字を太字にする */
 }
