@@ -4,9 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>家族情報編集</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
 </head>
-<body>
-    <h1>家族情報編集</h1>
-    
+<body class="auth-page">
+    <div class="container-center">
+        <div class="center-content">
+        <h2>家族情報編集</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-container">
+                <div class="form-group">
+                    現在の家族登録名<input type="text" name="current_family_name" value="{{family.name}}" readonly>
+                </div>
+                <div class="form-group">
+                    新しい家族登録名 {{ form.new_family_name }}
+                </div>
+            </div>
+            <button type="submit">保存</button>
+        </form> 
+
+        {% if form.errors %}
+                <div class="error-message">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <a href="{% url 'mypage' %}">マイページに戻る</a>
+        </div>
+    </div>
 </body>
 </html>
