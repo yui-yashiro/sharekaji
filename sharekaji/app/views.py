@@ -11,6 +11,10 @@ from .models import User, Family, Task, Comment, Recurrence
 from django.views.generic.edit import CreateView, UpdateView
 from django.urls import reverse_lazy
 import uuid
+from django.http import JsonResponse
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_GET
 
 # Create your views here.
 class SignUpView(View):
@@ -236,20 +240,33 @@ class MyPageView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
         family = user.family_id if user.family_id else None
-        family_members = user.family_id.members.all() if user.family_id else[]
+        family_members = user.family_id.members.all() if user.family_id else []
         image_form = ProfileImageForm(instance=user)
-        return render(request, 'accounts/mypage.html',{
-            'user':user,
+        return render(request, 'accounts/mypage.html', {
+            'user': user,
             'family': family,
-            'family_members':family_members,
-            'image_form':image_form
+            'family_members': family_members,
+            'image_form': image_form
         })
     
     def post(self, request):
+        print("POST request received")
         image_form = ProfileImageForm(request.POST, request.FILES, instance=request.user)
+
         if image_form.is_valid():
-            image_form.save()
-            print("Uploaded image URL:", user.profile_image.url) 
+            user = image_form.save(commit=False)
+            profile_image = request.FILES.get('profile_image')   # アップロードされた画像を取得
+
+            print("Profile image uploaded:", profile_image is not None)
+
+            if 'profile_image-clear' in request.POST:
+                user.profile_image = None  # 画像をクリア
+            elif profile_image:
+                user.profile_image = profile_image  # 画像を設定
+                print("Profile image saved:", user.profile_image)  # 画像が設定されたか確認
+
+            user.save()
+            print("Uploaded image URL:", user.profile_image.url if user.profile_image else "No image")  # URLが表示されるか確認
             return redirect('mypage')
         else:
             print("Form errors:", image_form.errors)
@@ -289,11 +306,25 @@ class FamilyEditView(LoginRequiredMixin, UpdateView):
 
 class FamilyInviteUrlView(LoginRequiredMixin, View):
     def get(self, request):
-        user = request.user
-        if not user.family_id.invitate_url:
-            user.family_id.invitate_url = str(uuid.uuid4())
-            user.family_id.save()
-        return render(request, 'accounts/family_invite_url.html', {'family_invite_url': user.family_id.invitate_url})
+        return render(request, 'accounts/family_invite_url.html')
+
+# 家族招待URLを生成してJSONで返すAPIエンドポイント
+@login_required
+@require_GET
+def generate_invite_url(request):
+    user = request.user
+    family = user.family_id
+    
+    # もし招待URLが設定されていない場合、新しいUUIDを生成して保存
+    if not family.invitate_url:
+        family.invitate_url = str(uuid.uuid4())
+        family.save()
+
+    # フロントエンドに返すURLを準備
+    response_data = {
+        "url": request.build_absolute_uri(f"/signup_invite/{family.invitate_url}/")
+    }
+    return JsonResponse(response_data)
     
 class SignupInviteView(View):
     def get(self, request, invite_code):

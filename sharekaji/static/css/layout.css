@@ -1,4 +1,9 @@
 /* マイページプロフィール部分 */
+.profile-container .upload-button {
+    margin-top: 0; /* 画像とボタンの間の隙間をなくす */
+    margin-bottom: 20px; /* ボタンとユーザー名の間に余白を追加 */
+}
+
 .profile-container {
     display: flex;
     align-items: center;
@@ -67,4 +72,47 @@ html, body {
 .error-message li {
     color: red; /* リストの中の文字を赤くする */
     font-weight: bold; /* リストの中の文字を太字にする */
+}
+
+/* 家族招待URL画面のスタイル */
+.family-invite-page .container {
+    width: 80%;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.family-invite-page .instructions {
+    padding: 10px;
+    border: 1px solid #333;
+    margin-bottom: 20px;
+    background-color: #f9f9f9; 
+    border-radius: 5px; 
+}
+
+.family-invite-page .action {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.family-invite-page #generate-url-btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.family-invite-page #invite-url {
+    padding: 10px;
+    border: 1px solid #ccc;
+    width: 100%;
+    display: none;
+}
+
+.family-invite-page .back-link {
+    display: block;
+    margin-top: 20px;
+    text-align: center;
 }
