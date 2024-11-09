@@ -44,7 +44,7 @@ class User(AbstractUser):
 # families
 class Family(models.Model):
     name =  models.CharField(max_length=32, unique=True) #家族名
-    invitate_url = models.TextField(null=True, blank=True) #家族招待URL
+    invite_url = models.TextField(null=True, blank=True) #家族招待URL
     created_at = models.DateTimeField(auto_now_add=True) # タスク作成日時
     updated_at = models.DateTimeField(auto_now=True) # 最終更新日時
 

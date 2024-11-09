@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404, reverse
 from django.views import View
 from app.forms import SignupForm, ProfileImageForm, AccountEditForm, FamilyEditForm, RecurringTaskForm, IndividualTaskForm
 from django.contrib.auth import authenticate, login, update_session_auth_hash
@@ -291,8 +291,10 @@ class AccountEditView(LoginRequiredMixin, UpdateView):
         return self.request.user
     
     def form_valid(self, form):
+        # パスワードが変更された場合、セッションを更新してログアウトを防ぐ
         response = super().form_valid(form)
-        update_session_auth_hash(self.request, self.object)
+        if form.cleaned_data.get('new_password'):
+            update_session_auth_hash(self.request, self.object)
         return response
 
 class FamilyEditView(LoginRequiredMixin, UpdateView):
@@ -316,15 +318,34 @@ def generate_invite_url(request):
     family = user.family_id
     
     # もし招待URLが設定されていない場合、新しいUUIDを生成して保存
-    if not family.invitate_url:
-        family.invitate_url = str(uuid.uuid4())
+    if not family.invite_url:
+        family.invite_url = str(uuid.uuid4())
         family.save()
 
     # フロントエンドに返すURLを準備
     response_data = {
-        "url": request.build_absolute_uri(f"/signup_invite/{family.invitate_url}/")
+        "url": request.build_absolute_uri(reverse('signup_family_invite', args=[family.invite_url]))
     }
     return JsonResponse(response_data)
+
+# 招待リンクを通じたアカウント登録ビュー
+def signup_family_invite(request, invite_url):
+    family = get_object_or_404(Family, invite_url=invite_url)
+
+    if request.method == "POST":
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.family_id = family
+            user.save()
+            return redirect("login")
+    else:
+        form = SignupForm()
+    
+    return render(request, "accounts/signup_family_invite.html",{
+        "form": form,
+        "family_name": family.name
+    })
     
 class SignupInviteView(View):
     def get(self, request, invite_code):

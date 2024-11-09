@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
-from app.views import SignUpView, LoginView, HomeView, TodayTasksView, RecurringTaskListView, RecurringTaskCreateView, Individual_TaskCreateView, TaskAnalysisView, MyPageView, AccountEditView, FamilyEditView, SignupInviteView, FamilyInviteUrlView, AccountDeleteView, RecurringTaskEditView, IndividualTaskEditView, generate_invite_url
+from app.views import SignUpView, LoginView, HomeView, TodayTasksView, RecurringTaskListView, RecurringTaskCreateView, Individual_TaskCreateView, TaskAnalysisView, MyPageView, AccountEditView, FamilyEditView, SignupInviteView, FamilyInviteUrlView, AccountDeleteView, RecurringTaskEditView, IndividualTaskEditView, generate_invite_url, signup_family_invite
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -39,4 +39,5 @@ urlpatterns = [
     path('recurring_task/<int:pk>/edit/', RecurringTaskEditView.as_view(), name='recurring_task_edit'),
     path('individual_task/<int:pk>/edit/', IndividualTaskEditView.as_view(), name='indivisual_task_edit'),
     path('generate-invite-url/', generate_invite_url, name='generate_invite_url'),
+    path('signup_invite/<str:invite_url>/', signup_family_invite, name='signup_family_invite'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

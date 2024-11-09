@@ -33,27 +33,35 @@ class LoginForm(forms.Form):
         return self.cleaned_data
 
 class AccountEditForm(forms.ModelForm):
-    password = forms.CharField(required=False, widget=forms.PasswordInput())
+    current_password = forms.CharField(required=False, widget=forms.PasswordInput())
     new_password = forms.CharField(required=False, widget=forms.PasswordInput())
     new_password_confirm = forms.CharField(required=False, widget=forms.PasswordInput())
 
     class Meta:
         model = User
-        fields = ['name', 'email', 'family_relationship', "password", "new_password", "new_password_confirm"]
+        fields = ['name', 'email', 'family_relationship']
     
     def clean(self):
         print("AccountEditFormのcleanが呼び出されました")
         cleaned_data = super().clean()
+        current_password = cleaned_data.get('current_password')
         new_password = cleaned_data.get('new_password')
         new_password_confirm = cleaned_data.get('new_password_confirm')
-        if new_password and new_password != new_password_confirm:
-            self.add_error('new_password_confirm', 'パスワードが一致しません。')
+
+        # 新しいパスワードが入力されている場合のみ、パスワード変更を検証
+        if new_password:
+            if not current_password:
+                self.add_error('current_password', 'パスワードを変更する場合は、現在のパスワードを入力してください。')
+            elif not self.instance.check_password(current_password):
+                self.add_error('current_password', '現在のパスワードが正しくありません。')
+            elif new_password != new_password_confirm:
+                self.add_error('new_password_confirm', '新しいパスワードが一致しません。')
         return cleaned_data
 
     def save(self, commit=True):
         user = super().save(commit=False)
         new_password = self.cleaned_data.get('new_password')
-        if new_password:
+        if new_password: # 新しいパスワードが入力されている場合のみ更新
             user.set_password(new_password)
         if commit:
             user.save()
