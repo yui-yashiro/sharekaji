@@ -116,3 +116,121 @@ html, body {
     margin-top: 20px;
     text-align: center;
 }
+/* 左上にタイトルを配置 */
+.account-delete-title {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #000;
+}
+
+/* アカウント削除画面全体の高さを画面全体ではなく、コンテンツに合わせる */
+.account-delete-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 500px;
+    margin: 50px auto; /* 画面上部に少し余白を取る */
+    padding: 20px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 警告メッセージのスタイル */
+.account-delete-warning {
+    color: red;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+/* フォーム内の入力フィールドのスタイル */
+.account-delete-form-group {
+    margin-bottom: 15px;
+}
+
+.account-delete-form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.account-delete-form-group input[type="password"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* ボタンのスタイル */
+.account-delete-button-group {
+    display: flex; /* Flexbox を追加 */
+    justify-content: center; /* 水平方向に中央揃え */
+    margin-top: 10px; /* 余白の調整 */
+}
+
+.account-delete-button-group button {
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 10px; 
+}
+
+/* パスワード入力フィールドとボタンの間に余白を追加 */
+.account-delete .form-group {
+    margin-bottom: 20px; /* 下に余白を追加してフィールドとボタンの間を広げる */
+}
+
+/* ポップアップのスタイル */
+.account-delete-confirm-box {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 400px;
+    padding: 20px;
+    background-color: #fff;
+    border: 2px solid #e74c3c;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    z-index: 1000;
+    display: none; /* 初期状態は非表示 */
+}
+
+/* OKボタンとキャンセルボタンのスタイル */
+.account-delete-confirm-box .ok-button,
+.account-delete-confirm-box .cancel-button {
+    padding: 8px 20px;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 10px;
+}
+
+.account-delete-confirm-box .ok-button {
+    background-color: #e74c3c;
+    color: #fff;
+    border: none;
+}
+
+.account-delete-confirm-box .cancel-button {
+    background-color: #ccc;
+    color: #333;
+    border: none;
+}
+
+/* 背景の暗幕 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none; /* 初期状態は非表示 */
+}

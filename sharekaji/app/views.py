@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404, reverse
 from django.views import View
 from app.forms import SignupForm, ProfileImageForm, AccountEditForm, FamilyEditForm, RecurringTaskForm, IndividualTaskForm
-from django.contrib.auth import authenticate, login, update_session_auth_hash
+from django.contrib.auth import authenticate, login, update_session_auth_hash, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.db.models import Count
@@ -366,16 +366,42 @@ class SignupInviteView(View):
 
 class AccountDeleteView(LoginRequiredMixin, View):
     def get(self, request):
-        return render(request, 'accounts/account_delete.html')
-    
+        # 未完了のタスクがあるか確認
+        has_incomplete_tasks = request.user.task_set.filter(completion_status=False).exists()
+        return render(request, 'accounts/account_delete.html', {
+            'has_incomplete_tasks': has_incomplete_tasks,
+        })
+
     def post(self, request):
         user = request.user
-        if user.task_set.filter(completion_status=False).exists():
+        password = request.POST.get('password')
+        confirm = request.POST.get('confirm') == 'true'
+
+        # confirmがtrueなら削除を実行
+        if confirm:
+            user.delete()
+            logout(request)
+            return redirect('login')
+
+        # パスワードの確認
+        if authenticate(username=user.email, password=password):
+            has_incomplete_tasks = user.task_set.filter(completion_status=False).exists()
+            if has_incomplete_tasks:
+                # 未完了タスクがある場合はエラーメッセージとともに画面を再表示
+                return render(request, 'accounts/account_delete.html', {
+                    'has_incomplete_tasks': True,
+                    'error_message': '未完了のタスクがあるため、アカウント削除できません。'
+                })
+             # 削除確認ポップアップを表示する
             return render(request, 'accounts/account_delete.html', {
-                'error':'未完了のタスクがあるため、アカウント削除できません。'
+                'show_confirm_popup': True,
             })
-        user.delete()
-        return redirect('login')
+        else:
+            # パスワードが間違っている場合
+            return render(request, 'accounts/account_delete.html', {
+                'has_incomplete_tasks': False,
+                'error_message': 'パスワードが正しくありません。'
+            })
 
 class RecurringTaskEditView(LoginRequiredMixin, UpdateView):
     model = Recurrence
