@@ -52,19 +52,22 @@
         </div>
 
         <div class="comment-box mt-3">
-            {% if comment %}
-        <p><strong>{{ comment.user_name }}:</strong> {{ comment.text }}</p>  <!-- コメントした人の名前とコメント内容を表示 -->
+            {% if task.comment %}
+                <p><strong>{{ task.user.name }}:</strong> {{ task.comment }}</p>
+            {% else %}
+                <p>コメントはありません。</p>
             {% endif %}
         </div>
 
         <!-- コメントを入力するバー -->
         <div class="comment-bar mt-3">
-            <form method="post" action="{% url 'post_comment' %}">
-              {% csrf_token %}
-              <div class="form-group">
-                  <input type="text" name="comment" class="form-control" placeholder="コメントを入力してください...">
-              </div>
-              <button type="submit" class="btn btn-primary mt-2">送信</button>
+            <form method="post" action="{% url 'today_tasks' %}">
+                {% csrf_token %}
+                <input type="hidden" name="task_id" value="{{ task.id }}">
+                <div class="form-group">
+                    <input type="text" name="comment" class="form-control" placeholder="コメントを入力してください...">
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">送信</button>
             </form>
         </div>
     </div>

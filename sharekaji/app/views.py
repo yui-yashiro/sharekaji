@@ -138,30 +138,36 @@ class HomeView(View):
         return render(request, 'tasks/home.html', context)
 
 
-class TodayTasksView(View):
+class TodayTasksView(LoginRequiredMixin, View):
     def get(self, request):
-        current_date = timezone.now()
-
+        current_date = timezone.localtime()  # 現在の日時（ローカルタイム）
         tasks = Task.objects.filter(
             user=request.user,
             scheduled_datetime__date=current_date.date()
         )
 
+        # デバッグ用出力：取得したタスク数と内容を確認
+        print(f"今日のタスク数: {tasks.count()}")
         for task in tasks:
+            print(f"タスク名: {task.task_name}, 完了状態: {task.completion_status}, 担当者コメント: {task.comment}")
             task.estimated_time_hours = task.estimated_time / 60
-        
-        return render(request, 'tasks/today_tasks.html',{
-            'tasks':tasks,
+
+        return render(request, 'tasks/today_tasks.html', {
+            'tasks': tasks,
             'current_date': current_date
         })
-    def post_comment(request):
+
+    def post(self, request):
         if request.method == "POST":
-           comment_text = request.POST.get("comment")
-           user = request.user
-           task_id = request.POST.get("task_id") 
-           task = Task.objects.get(pk=task_id)
-           Comment.objects.create(user=user, text=comment_text, task=task)
-        return redirect('today_tasks') 
+            comment_text = request.POST.get("comment")
+            task_id = request.POST.get("task_id") 
+            task = Task.objects.get(pk=task_id)
+            Comment.objects.create(user=request.user, comment=comment_text, task=task)
+            
+            # デバッグ用出力：追加されたコメントを確認
+            print(f"コメントが追加されました: {comment_text}, タスクID: {task_id}")
+        
+        return redirect('today_tasks')
 
 class RecurringTaskListView(View):
     def get(self, request):
@@ -184,14 +190,39 @@ class RecurringTaskCreateView(CreateView):
 
 class Individual_TaskCreateView(CreateView):
     model = Task
-    fields = ['task_name', 'user', 'estimated_time', 'due_datetime']
+    fields = ['task_name', 'estimated_time', 'due_datetime']
     template_name = 'tasks/add_individual_tasks.html'
-    success_url = reverse_lazy('today_tasks')  # 登録後、本日のタスク一覧にリダイレクト
+    success_url = reverse_lazy('today_tasks')
 
-    # フォーム送信時にリクエストユーザーを保存する処理
     def form_valid(self, form):
-        form.instance.user = self.request.user  # 現在のユーザーを設定
+        form.instance.user = self.request.user
+        
+        # `scheduled_datetime`をローカルタイムの日付として設定
+        form.instance.scheduled_datetime = timezone.localtime(timezone.now()).replace(hour=0, minute=0, second=0, microsecond=0)
+
+        # デバッグ出力で確認
+        print("タスク登録処理が呼ばれました")
+        print("タスク名:", form.instance.task_name)
+        print("所要時間（分）:", form.instance.estimated_time)
+        print("完了期限:", form.instance.due_datetime)
+        print("予定日時:", form.instance.scheduled_datetime)
+        print("ユーザー:", form.instance.user)
+
+        saved_task = form.save(commit=True)
+        if saved_task:
+            print("タスクが正常に保存されました。")
+        else:
+            print("タスクの保存に失敗しました。")
+
         return super().form_valid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.user.is_authenticated:
+            context['family_members'] = User.objects.filter(family_id=self.request.user.family_id)
+        else:
+            context['family_members'] = []
+        return context
 
 class TaskAnalysisView(View):
     def get(self, request):
