@@ -78,7 +78,13 @@
                 center: 'title',
                 right: 'dayGridMonth'
             },
-            events: {{ event_data|safe }}
+            events: {{ event_data|safe }},
+            dateClick: function(info){ //日付クリックイベントを追加
+                var selectDate = info.dateStr; //クリックした日付（YYYY-MM-DD形式）
+
+                // タスク一覧ページへの遷移
+                window.location.href = `/tasks/today/${selectDate}/`;
+            }
         });
 
         calendar.render();

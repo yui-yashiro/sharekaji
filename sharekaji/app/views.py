@@ -71,101 +71,57 @@ class HomeView(View):
             year = now.year
             month = now.month
 
-        # 個別タスクを取得してイベントデータに追加
+        # 個別タスクを取得してイベントデータに追加（重複を防ぐため、localtimeで調整）
         tasks = Task.objects.filter(user=request.user)
         event_data = [
             {
                 "title": task.task_name,
-                "start": task.due_datetime.isoformat() if task.due_datetime else None
+                "start": timezone.localtime(task.due_datetime).isoformat() if task.due_datetime else None
             }
             for task in tasks
         ]
 
-        # 繰り返しタスクを取得してイベントデータに追加
-        recurrences = Recurrence.objects.filter(user=request.user)
-        for recurrence in recurrences:
-            if recurrence.recurrence_type == 1: # 毎日繰り返し
-                for day in range((recurrence.end_date - recurrence.start_date).days + 1):
-                    date = recurrence.start_date + timedelta(days=day)
-                    event_data.append({
-                        "title":recurrence.task_name,
-                        "start":datetime.combine(date, recurrence.due_time).isoformat()
-                    })
-            elif recurrence.recurrence_type == 2: # 週ごとに繰り返し
-                current_date = recurrence.start_date
-                while current_date <= recurrence.end_date:
-                    if current_date.weekday() == recurrence.weekday:
-                        event_data.append({
-                        "title":recurrence.task_name,
-                        "start":datetime.combine(current_date, recurrence.due_time).isoformat()
-                        })
-                    current_date += timedelta(days=1)
-            elif recurrence.recurrence_type == 3: # 月ごとに繰り返し
-                current_date = recurrence.start_date
-                while current_date <= recurrence.end_date:
-                    if current_date.day == recurrence.day_of_month:
-                        event_data.append({
-                        "title":recurrence.task_name,
-                        "start":datetime.combine(current_date, recurrence.due_time).isoformat()
-                        })
-                    current_date = (current_date.replace(day=1) + timedelta(days=32)).replace(day=1)
-
-
-
-        # リマインドの対象となるタスク（完了期限2時間前のもの）をフィルタリング
-        reminders = tasks.filter(due_datetime__lte=now + timedelta(hours=2), completion_status=False)
-
-        # 他の家族が完了したタスクを取得
-        family_notifications = Task.objects.filter(user__isnull=False, completion_status=True)
-
-        # 完了していない家事
-        incomplete_tasks = tasks.filter(completion_status=False)
-
-        # 最近完了した家事（最新3件を表示する）
-        completed_tasks = tasks.filter(completion_status=True).order_by('-completion_datetime')[:3]
-
-        # コンテキストにデータを渡す
         context = {
             "event_data": event_data,
             "tasks": tasks,
-            "family_notifications": family_notifications,
-            "reminders": reminders,
-            "incomplete_tasks": incomplete_tasks, 
-            "completed_tasks": completed_tasks, 
-            'current_year': year,
-            'current_month': month,
         }
         return render(request, 'tasks/home.html', context)
 
-
 class TodayTasksView(LoginRequiredMixin, View):
-    def get(self, request):
-        current_date = timezone.localtime()  # 現在の日時（ローカルタイム）
+    def get(self, request, selected_date=None):
+        # 選択された日付がある場合はそれを使用、なければ現在の日付を取得
+        if selected_date:
+            current_date = datetime.strptime(selected_date, "%Y-%m-%d").date()
+        else:
+            current_date = timezone.localtime().date()
+
+        # 今日のタスクを取得
         tasks = Task.objects.filter(
             user=request.user,
-            scheduled_datetime__date=current_date.date()
+            scheduled_datetime__date=current_date
         )
 
-        # デバッグ用出力：取得したタスク数と内容を確認
-        print(f"今日のタスク数: {tasks.count()}")
+        # 取得したタスクの日時をローカルタイムに変換
         for task in tasks:
-            print(f"タスク名: {task.task_name}, 完了状態: {task.completion_status}, 担当者コメント: {task.comment}")
-            task.estimated_time_hours = task.estimated_time / 60
+            task.scheduled_datetime = timezone.localtime(task.scheduled_datetime)
+            task.due_datetime = timezone.localtime(task.due_datetime)
+            task.estimated_time_hours = task.estimated_time / 60  # 分を時間に変換
 
+        # テンプレートに渡す
         return render(request, 'tasks/today_tasks.html', {
             'tasks': tasks,
             'current_date': current_date
         })
 
     def post(self, request):
-        if request.method == "POST":
-            comment_text = request.POST.get("comment")
-            task_id = request.POST.get("task_id") 
-            task = Task.objects.get(pk=task_id)
-            Comment.objects.create(user=request.user, comment=comment_text, task=task)
-            
-            # デバッグ用出力：追加されたコメントを確認
-            print(f"コメントが追加されました: {comment_text}, タスクID: {task_id}")
+        # コメントの保存処理
+        comment_text = request.POST.get("comment")
+        task_id = request.POST.get("task_id")
+        task = Task.objects.get(pk=task_id)
+        Comment.objects.create(user=request.user, comment=comment_text, task=task)
+        
+        # デバッグ用出力
+        print(f"コメントが追加されました: {comment_text}, タスクID: {task_id}")
         
         return redirect('today_tasks')
 
@@ -179,15 +135,70 @@ class RecurringTaskListView(View):
 
 class RecurringTaskCreateView(CreateView):
     model = Recurrence
-    fields = ['task_name', 'user',  'start_date', 'due_time', 'estimated_time', 'recurrence_type', 'weekday', 'day_of_month', 'end_date']
+    fields = ['task_name', 'start_date', 'due_time', 'estimated_time', 'recurrence_type', 'weekday', 'day_of_month', 'end_date']
     template_name = 'tasks/add_recurring_tasks.html'
     success_url = reverse_lazy('recurring_tasks')  # 登録後、周期タスク一覧にリダイレクト
 
-    # フォーム送信時にリクエストユーザーを保存する処理
     def form_valid(self, form):
-        form.instance.user = self.request.user  # 現在のユーザーを設定
+        print("form_valid メソッドが呼ばれました")
+        print(f"フォームの内容: {form.cleaned_data}")
+
+        # 担当者が未選択の場合、自動割り当て
+        assignee_id = self.request.POST.get("assignee")
+        if assignee_id:
+            assignee = User.objects.get(id=assignee_id)
+            form.instance.user = assignee
+            print(f"担当者が選択されました: {assignee}")
+        else:
+            form.instance.user = self.get_auto_assigned_user()
+            print(f"担当者が未選択のため、自動割り当て: {form.instance.user}")
+
+        recurrence = form.save()
+        print(f"周期タスクが保存されました: {recurrence}")
+
+        current_date = recurrence.start_date
+        while current_date <= recurrence.end_date:
+            if self.is_task_date(current_date, recurrence):
+                task = Task.objects.create(
+                    user=recurrence.user,
+                    task_name=recurrence.task_name,
+                    scheduled_datetime=timezone.make_aware(datetime.combine(current_date, recurrence.due_time)),
+                    due_datetime=timezone.make_aware(datetime.combine(current_date, recurrence.due_time)),
+                    estimated_time=recurrence.estimated_time,
+                    recurrence=recurrence  # 親タスク（周期タスク）を参照
+                )
+                print(f"タスク作成: {task.task_name} on {task.scheduled_datetime}")
+            current_date += timedelta(days=1)
+
         return super().form_valid(form)
 
+    def get_auto_assigned_user(self):
+        last_task = Task.objects.filter(recurrence__isnull=False).order_by('-scheduled_datetime').first()
+        if last_task is None:
+            default_user = User.objects.filter(family_id=self.request.user.family_id).first() or self.request.user
+            return default_user
+
+        last_assigned_user = last_task.user
+        family_members = User.objects.filter(family_id=self.request.user.family_id).exclude(id=last_assigned_user.id)
+        return family_members.first() if family_members.exists() else last_assigned_user
+
+    def is_task_date(self, date, recurrence):
+        if recurrence.recurrence_type == 1:  # 毎日
+            return True
+        elif recurrence.recurrence_type == 2 and date.weekday() == recurrence.weekday:  # 毎週
+            return True
+        elif recurrence.recurrence_type == 3 and date.day == recurrence.day_of_month:  # 毎月
+            return True
+        return False
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.user.is_authenticated:
+            context['family_members'] = User.objects.filter(family_id=self.request.user.family_id)
+        else:
+            context['family_members'] = []
+        return context
+    
 class Individual_TaskCreateView(CreateView):
     model = Task
     fields = ['task_name', 'estimated_time', 'due_datetime']
@@ -197,8 +208,10 @@ class Individual_TaskCreateView(CreateView):
     def form_valid(self, form):
         form.instance.user = self.request.user
         
-        # `scheduled_datetime`をローカルタイムの日付として設定
-        form.instance.scheduled_datetime = timezone.localtime(timezone.now()).replace(hour=0, minute=0, second=0, microsecond=0)
+        # `scheduled_datetime` を現在の日時として設定し、タイムゾーン情報を追加
+        form.instance.scheduled_datetime = timezone.make_aware(
+            datetime.combine(timezone.now().date(), datetime.min.time())
+        )
 
         # デバッグ出力で確認
         print("タスク登録処理が呼ばれました")

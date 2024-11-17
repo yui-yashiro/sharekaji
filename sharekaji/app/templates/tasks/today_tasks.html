@@ -3,80 +3,81 @@
 {% block title %}本日のタスク一覧{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h4 class="page-title">本日のタスク一覧</h4>
-    
-    <!-- アクセスした日の日付を表示 -->
-    <h4 class="text-center"> {{ current_date|date:"Y年 F j日" }}（{{ current_date|date:"l" }}）</h4>
-
-    <!-- 「個別タスクを追加する」ボタンは常時表示 -->
-    <div class="d-flex justify-content-end">
-        <a href="{% url 'add_individual_tasks' %}" class="btn btn-success">＋個別タスクを追加する</a>
-    </div>
-
-    <!-- タスクが存在する場合の表示 -->
-    {% if tasks %}
-        {% for task in tasks %}
-    <div class="task-box">
-        <div class="task-details">
-            <p><strong>家事内容：</strong> {{ task.task_name }}</p>
-            <p><strong>担当者：</strong> {{ task.user.name }}</p>
-            <p><strong>所要時間見込み：</strong> {{ task.estimated_time_hours|floatformat:1 }}時間</p>
-            <p><strong>対応完了期限：</strong> {{ task.due_datetime|date:"H:i" }}</p>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <label for="status"><strong>ステータス：</strong></label>
-                <select id="status" class="form-select">
-                    <option value="complete" {% if task.completion_status %}selected{% endif %}>完了</option>
-                    <option value="incomplete" {% if not task.completion_status %}selected{% endif %}>未完了</option>
-                </select>
-            </div>
-            <div class="col-md-6">
-                <p><strong>担当者コメント：</strong> {{ task.comment }}</p>
-            </div>
+<div class="today_tasks">
+    <div class="container mt-4">
+        <!-- アクセスした日の日付を表示 -->
+        <h3 class="text-center"> {{ current_date|date:"Y年 F j日" }}（{{ current_date|date:"l" }}）</h3>
+        <!-- 「個別タスクを追加する」ボタンは常時表示 -->
+        <div class="d-flex justify-content-end">
+            <a href="{% url 'add_individual_tasks' %}" class="btn btn-success add-task-button">＋個別タスクを追加する</a>
         </div>
 
-        <div class="action-buttons">
-            <button class="btn btn-primary btn-sm">編集する</button>
-            <button class="btn btn-danger btn-sm">削除する</button>
-            <button class="btn btn-secondary btn-sm">進捗を編集する</button>
-        </div>
+        <!-- タスクが存在する場合の表示 -->
+        {% if tasks %}
+            {% for task in tasks %}
+                <div class="task-box">
+                    <div class="task-header-box p-3 mb-3 border rounded">
+                        <div class="task-details">
+                            <p><strong>家事内容：</strong> {{ task.task_name }}</p>
+                            <p><strong>担当者：</strong> {{ task.user.name }}</p>
+                            <p><strong>所要時間見込み：</strong> {{ task.estimated_time_hours|floatformat:1 }}時間</p>
+                        </div>
+                        <div class="task-deadline-and-actions">
+                            <p><strong>対応完了期限：</strong> {{ task.due_datetime|date:"H:i" }}</p>
+                            <div class="action-buttons">
+                                <a href="{% url 'individual_task_edit' task.pk %}" class="btn btn-secondary btn-sm">編集する</a>
+                                <button class="btn btn-danger btn-sm">削除する</button>
+                            </div>
+                        </div>
+                    </div>
 
-        <div class="reaction mt-3">
-            <p>リアクション：</p>
-            <span role="button" class="reaction">&#128077;</span>  <!-- 親指の絵文字 -->
-            <span role="button" class="reaction">&#128151;</span>  <!-- ハートの絵文字 -->
-            <span role="button" class="reaction">&#128079;</span>  <!-- 拍手の絵文字 -->
-            <span role="button" class="reaction">&#128583;</span>  <!-- お辞儀の絵文字 -->
-        </div>
+                    <div class="task-progress-box p-3 mb-3 border rounded">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="status"><strong>ステータス：</strong></label>
+                                <select id="status" class="form-select">
+                                    <option value="complete" {% if task.completion_status %}selected{% endif %}>完了</option>
+                                    <option value="incomplete" {% if not task.completion_status %}selected{% endif %}>未完了</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>担当者コメント：</strong> {{ task.comment }}</p>
+                            </div>
+                        </div>
+                        <div class="reaction mt-3">
+                            <p>リアクション：</p>
+                            <span role="button" class="reaction">&#128077;</span>
+                            <span role="button" class="reaction">&#128151;</span>
+                            <span role="button" class="reaction">&#128079;</span>
+                            <span role="button" class="reaction">&#128583;</span>
+                        </div>
+                        <button class="btn btn-secondary btn-sm mt-3">進捗を編集する</button>
+                    </div>
 
-        <div class="comment-box mt-3">
-            {% if task.comment %}
-                <p><strong>{{ task.user.name }}:</strong> {{ task.comment }}</p>
-            {% else %}
-                <p>コメントはありません。</p>
-            {% endif %}
-        </div>
+                    <div class="comment-box mt-3">
+                        {% if task.comment %}
+                            <p><strong>{{ task.user.name }}:</strong> {{ task.comment }}</p>
+                        {% else %}
+                            <p>コメントはありません。</p>
+                        {% endif %}
+                    </div>
 
-        <!-- コメントを入力するバー -->
-        <div class="comment-bar mt-3">
-            <form method="post" action="{% url 'today_tasks' %}">
-                {% csrf_token %}
-                <input type="hidden" name="task_id" value="{{ task.id }}">
-                <div class="form-group">
-                    <input type="text" name="comment" class="form-control" placeholder="コメントを入力してください...">
+                    <!-- コメントを入力するバー -->
+                    <div class="comment-bar mt-3">
+                        <form method="post" action="{% url 'today_tasks' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="task_id" value="{{ task.id }}">
+                            <div class="form-group">
+                                <input type="text" name="comment" class="form-control" placeholder="コメントを入力してください...">
+                            </div>
+                            <button type="submit" class="btn btn-primary mt-2">送信</button>
+                        </form>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary mt-2">送信</button>
-            </form>
-        </div>
+            {% endfor %}
+        {% else %}
+            <p>現在、タスクがありません。新しいタスクを追加してください。</p>
+        {% endif %}
     </div>
-    {% endfor %}
-    {% else %}
-        <!-- タスクがない場合 -->
-        <p>現在、タスクがありません。新しいタスクを追加してください。</p>
-    {% endif %}
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</div> 
 {% endblock %}

@@ -94,4 +94,4 @@ class RecurringTaskForm(forms.ModelForm):
 class IndividualTaskForm(forms.ModelForm):
     class Meta:
         model = Task
-        fields = ['task_name', 'user', 'estimated_time', 'due_datetime']        
+        fields = ['task_name', 'user', 'estimated_time', 'due_datetime']

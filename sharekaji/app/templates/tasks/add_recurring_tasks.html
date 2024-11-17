@@ -12,54 +12,112 @@
                 <input type="text" class="form-control" id="task_name" name="task_name" required>
             </div>
             
+            <!-- 担当者選択フィールド: family_members を表示 -->
             <div class="mb-3">
                 <label for="assignee" class="form-label">担当</label>
-                <input type="text" class="form-control" id="assignee" name="assignee" required>
+                <select class="form-control" id="assignee" name="assignee">
+                    <option value=""></option>
+                    {% for member in family_members %}
+                        <option value="{{ member.id }}">{{ member.name }}</option>
+                    {% endfor %}
+                </select>
             </div>
 
             <div class="mb-3">
                 <label for="start_date" class="form-label">タスク開始日</label>
                 <input type="date" class="form-control" id="start_date" name="start_date" required>
             </div>
-    
+
             <div class="mb-3">
                 <label for="estimated_time" class="form-label">所要時間見込み</label>
                 <select class="form-control" id="estimated_time" name="estimated_time">
-                    <option value="0.5">0.5時間</option>
-                    <option value="1">1時間</option>
-                    <option value="1.5">1.5時間</option>
-                    <option value="2">2時間</option>
-                    <option value="2.5">2.5時間</option>
-                    <option value="3">3時間</option>
-                    <option value="3.5">3.5時間</option>
-                    <option value="4">4時間</option>
-                    <option value="4.5">4.5時間</option>
-                    <option value="5">5時間</option>
+                    <option value="30">0.5時間</option>
+                    <option value="60">1時間</option>
+                    <option value="90">1.5時間</option>
+                    <option value="120">2時間</option>
+                    <option value="150">2.5時間</option>
+                    <option value="180">3時間</option>
+                    <option value="210">3.5時間</option>
+                    <option value="240">4時間</option>
+                    <option value="270">4.5時間</option>
+                    <option value="300">5時間</option>
                 </select>
             </div>
-    
+
             <div class="mb-3">
                 <label for="due_time" class="form-label">対応完了期限</label>
                 <input type="time" class="form-control" id="due_time" name="due_time" required>
             </div>
-    
+
+            <!-- 繰り返し周期指定のフィールド -->
             <div class="mb-3">
                 <label for="recurrence_type" class="form-label">繰り返し周期</label>
                 <select class="form-control" id="recurrence_type" name="recurrence_type">
-                    <option value="daily">日</option>
-                    <option value="weekly">週</option>
-                    <option value="monthly">月</option>
+                    <option value="1">日</option>
+                    <option value="2">週</option>
+                    <option value="3">月</option>
                 </select>
             </div>
-    
+
+            <!-- **週選択用のチェックボックス** -->
+            <div id="weekdays" class="mb-3" style="display: none;">
+                <label class="form-label">曜日指定</label><br>
+                <input type="checkbox" name="weekday" value="0"> 月
+                <input type="checkbox" name="weekday" value="1"> 火
+                <input type="checkbox" name="weekday" value="2"> 水
+                <input type="checkbox" name="weekday" value="3"> 木
+                <input type="checkbox" name="weekday" value="4"> 金
+                <input type="checkbox" name="weekday" value="5"> 土
+                <input type="checkbox" name="weekday" value="6"> 日
+            </div>
+
+            <!-- **月選択用のセレクトボックス** -->
+            <div id="monthdays" class="mb-3" style="display: none;">
+                <label for="day_of_month" class="form-label">日付指定</label>
+                <select class="form-control" id="day_of_month" name="day_of_month">
+                    {% for day in day_range %}
+                        <option value="{{ day }}">{{ day }}日</option>
+                    {% endfor %}
+                </select>
+            </div>
+
             <div class="mb-3">
                 <label for="end_date" class="form-label">繰り返し終了日</label>
                 <input type="date" class="form-control" id="end_date" name="end_date" required>
             </div>
-    
+
             <div class="d-flex justify-content-between">
                 <button type="submit" class="btn btn-primary">登録</button>
+            </div>
         </form>
         <a href="{% url 'recurring_tasks' %}" class="btn btn-secondary mt-3">戻る</a>
     </div>    
+
+    <!-- **JavaScriptで繰り返し周期に応じてフィールドの表示を切り替え** -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // 初期表示のために関数を一度実行
+            toggleRecurrenceFields();
+
+            // recurrence_type の変更時に toggleRecurrenceFields を実行
+            document.getElementById("recurrence_type").addEventListener("change", toggleRecurrenceFields);
+        });
+
+        function toggleRecurrenceFields() {
+            const recurrenceType = document.getElementById("recurrence_type").value;
+            const weekdays = document.getElementById("weekdays");
+            const monthdays = document.getElementById("monthdays");
+
+            if (recurrenceType == "2") { // 週
+                weekdays.style.display = "block";
+                monthdays.style.display = "none";
+            } else if (recurrenceType == "3") { // 月
+                weekdays.style.display = "none";
+                monthdays.style.display = "block";
+            } else { // 日
+                weekdays.style.display = "none";
+                monthdays.style.display = "none";
+            }
+        }
+    </script>
 {% endblock %}
