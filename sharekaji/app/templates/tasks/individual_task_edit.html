@@ -1,11 +1,65 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>個別タスク編集</title>
-</head>
-<body>
-    <h1>個別タスク編集</h1>
-</body>
-</html>
+{% extends 'tasks/base.html' %}
+
+{% block title %}個別タスク編集{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h4 class="page-title"><strong>個別タスク編集</strong></h4>
+        <form id="editTaskForm" method="post" action="{% url 'individual_task_edit' task.id %}">
+            {% csrf_token %}
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    <ul>
+                        {% for field, errors in form.errors.items %}
+                            <li>{{ field }}: {{ errors|join:", " }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+            <div class="mb-3">
+                <label for="task_name" class="form-label">家事名</label>
+                <input type="text" class="form-control" id="task_name" name="task_name" value="{{ form.task_name.value }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="assignee" class="form-label">担当</label>
+                <select class="form-control" id="assignee" name="assignee">
+                    <option value=""></option>
+                    {% for member in family_members %}
+                        <option value="{{ member.id }}" {% if form.assignee.value == member.id %}selected{% endif %}>{{ member.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="estimated_time" class="form-label">所要時間見込み</label>
+                <select class="form-control" id="estimated_time" name="estimated_time">
+                    <option value="30" {% if form.estimated_time.value == '30' %}selected{% endif %}>0.5時間</option>
+                    <option value="60" {% if form.estimated_time.value == '60' %}selected{% endif %}>1時間</option>
+                    <option value="90" {% if form.estimated_time.value == '90' %}selected{% endif %}>1.5時間</option>
+                    <option value="120" {% if form.estimated_time.value == '120' %}selected{% endif %}>2時間</option>
+                    <option value="150" {% if form.estimated_time.value == '150' %}selected{% endif %}>2.5時間</option>
+                    <option value="180" {% if form.estimated_time.value == '180' %}selected{% endif %}>3時間</option>
+                    <option value="210" {% if form.estimated_time.value == '210' %}selected{% endif %}>3.5時間</option>
+                    <option value="240" {% if form.estimated_time.value == '240' %}selected{% endif %}>4時間</option>
+                    <option value="270" {% if form.estimated_time.value == '270' %}selected{% endif %}>4.5時間</option>
+                    <option value="300" {% if form.estimated_time.value == '300' %}selected{% endif %}>5時間</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="due_datetime" class="form-label">対応完了期限</label>
+                <input type="datetime-local" class="form-control" id="due_datetime" name="due_datetime" value="{{ form.due_datetime.value|date:'Y-m-d\\TH:i' }}" required>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="text-center flex-grow-1">
+                    <button type="submit" class="btn btn-primary mx-auto">保存</button>
+                </div>
+                <div>
+                    <a href="{% url 'today_tasks' %}" class="btn btn-secondary">戻る</a>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}

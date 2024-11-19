@@ -92,6 +92,13 @@ class RecurringTaskForm(forms.ModelForm):
         fields = ['task_name', 'user', 'start_date', 'due_time', 'estimated_time', 'recurrence_type', 'weekday', 'day_of_month', 'end_date']
 
 class IndividualTaskForm(forms.ModelForm):
+    user = forms.ModelChoiceField(queryset=User.objects.none(), required=False)
     class Meta:
         model = Task
         fields = ['task_name', 'user', 'estimated_time', 'due_datetime']
+
+    def __init__(self, *args, **kwargs):
+        family_id = kwargs.pop('family_id', None)
+        super().__init__(*args, **kwargs)
+        if family_id:
+            self.fields['user'].queryset = User.objects.filter(family_id=family_id)

@@ -454,6 +454,7 @@ class RecurringTaskEditView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy('recurring_tasks')
 
     def form_valid(self, form):
+        # 保存前に確認ポップアップを表示するかどうかの判定
         response = super().form_valid(form)
         return response
 
@@ -463,6 +464,31 @@ class IndividualTaskEditView(LoginRequiredMixin, UpdateView):
     template_name = 'tasks/individual_task_edit.html'
     success_url = reverse_lazy('today_tasks')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['family_members'] = User.objects.filter(family_id=self.request.user.family_id)
+        return context
+    
+    def get_form_kwargs(self):
+        kwargs =  super().get_form_kwargs()
+        kwargs['family_id'] = self.request.user.family_id
+        return kwargs
+
     def form_valid(self, form):
-        response = super().form_valid(form)
-        return response
+        # 担当者が未設定の場合に自動で割り当て
+        if not form.cleaned_data.get('user'):
+            # 家族メンバーの取得
+            family_members = User.objects.filter(family_id=self.request.user.family_id)
+            
+            # 前回のタスクの担当者を取得
+            last_task = Task.objects.filter(user__in=family_members).order_by('-due_datetime').first()
+            last_assignee = last_task.user if last_task else None  # 'assignee' を 'user' に変更
+
+            # タスク数が少ないメンバーを優先し、前回の担当者を除外
+            available_members = family_members.exclude(id=last_assignee.id) if last_assignee else family_members
+            assignee = available_members.annotate(task_count=Count('task')).order_by('task_count').first()
+
+            # もし全員が前回と同じ担当者なら、除外せずに最少タスク数のメンバーを割り当て
+            form.instance.user = assignee if assignee else last_assignee
+        
+        return super().form_valid(form)
