@@ -26,7 +26,7 @@
                 <select class="form-control" id="assignee" name="assignee">
                     <option value=""></option>
                     {% for member in family_members %}
-                        <option value="{{ member.id }}" {% if form.assignee.value == member.id %}selected{% endif %}>{{ member.name }}</option>
+                        <option value="{{ member.id }}" {% if form.user.value == member.id %}selected{% endif %}>{{ member.name }}</option>
                     {% endfor %}
                 </select>
             </div>
