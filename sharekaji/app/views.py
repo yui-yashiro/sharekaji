@@ -97,7 +97,7 @@ class TodayTasksView(LoginRequiredMixin, View):
 
         # 今日のタスクを取得
         tasks = Task.objects.filter(
-            user=request.user,
+            user__family_id=request.user.family_id,
             scheduled_datetime__date=current_date
         )
 
@@ -197,6 +197,10 @@ class RecurringTaskCreateView(CreateView):
             context['family_members'] = User.objects.filter(family_id=self.request.user.family_id)
         else:
             context['family_members'] = []
+
+        # 1日から31日までの値をテンプレートに渡す
+        context['day_range'] = range(1,31 + 1)
+
         return context
     
 class Individual_TaskCreateView(CreateView):
@@ -210,7 +214,7 @@ class Individual_TaskCreateView(CreateView):
         
         # `scheduled_datetime` を現在の日時として設定し、タイムゾーン情報を追加
         form.instance.scheduled_datetime = timezone.make_aware(
-            datetime.combine(timezone.now().date(), datetime.min.time())
+            datetime.combine(form.cleaned_data.get('due_datetime').date(), datetime.min.time())
         )
 
         # デバッグ出力で確認
@@ -454,9 +458,66 @@ class RecurringTaskEditView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy('recurring_tasks')
 
     def form_valid(self, form):
-        # 保存前に確認ポップアップを表示するかどうかの判定
+        # デバッグ用出力
+        print("=== フォーム送信データ ===")
+        print(self.request.POST)
+        print("=== フォームのクリーンデータ ===")
+        print(form.cleaned_data)
+
+        # 保存処理
         response = super().form_valid(form)
+
+        # 必要なデータの取得
+        recurrence = form.instance
+        task_name = form.cleaned_data.get('task_name')
+        user = form.cleaned_data.get('user')
+        due_time = form.cleaned_data.get('due_time')
+        estimated_time = form.cleaned_data.get('estimated_time')
+
+        # 開始日と終了日を取得
+        current_date = recurrence.start_date
+        end_date = recurrence.end_date
+
+        # 開始日から終了日までの間でタスクを更新または新規作成
+        while current_date <= end_date:
+            if self.is_task_date(current_date, recurrence):
+                due_datetime = timezone.make_aware(
+                    datetime.combine(current_date, due_time)
+                )
+                task, created = Task.objects.update_or_create(
+                    recurrence=recurrence,
+                    due_datetime=due_datetime,
+                    defaults={
+                        'task_name': task_name,
+                        'user': user,
+                        'estimated_time': estimated_time,
+                        'scheduled_datetime': due_datetime,
+                    }
+                )
+                if created:
+                    print(f"タスク新規作成: {task}")
+                else:
+                    print(f"タスク更新: {task}")
+            current_date += timedelta(days=1)
+
         return response
+
+    def is_task_date(self, date, recurrence):
+        """周期タスクが特定の日付に該当するかを判定"""
+        if recurrence.recurrence_type == 1:  # 毎日
+            return True
+        elif recurrence.recurrence_type == 2 and date.weekday() == recurrence.weekday:  # 毎週
+            return True
+        elif recurrence.recurrence_type == 3 and date.day == recurrence.day_of_month:  # 毎月
+            return True
+        return False
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['family_members'] = User.objects.filter(family_id=self.request.user.family_id)
+        context['day_range'] = range(1, 31 + 1)
+        return context
+
 
 class IndividualTaskEditView(LoginRequiredMixin, UpdateView):
     model = Task
@@ -492,3 +553,12 @@ class IndividualTaskEditView(LoginRequiredMixin, UpdateView):
             form.instance.user = assignee if assignee else last_assignee
         
         return super().form_valid(form)
+
+class TaskDeleteView(LoginRequiredMixin, View):
+    def post(self, request, task_id):
+        try:
+            task = Task.objects.get(id=task_id, user=request.user)
+            task.delete()
+            return JsonResponse({"success": True, "message": "タスクを削除しました。"})
+        except Task.DoesNotExist:
+            return JsonResponse({"success":False, "message": "タスクが見つかりません。"})

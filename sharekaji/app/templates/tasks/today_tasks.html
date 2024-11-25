@@ -26,7 +26,7 @@
                             <p><strong>対応完了期限：</strong> {{ task.due_datetime|date:"H:i" }}</p>
                             <div class="action-buttons">
                                 <a href="{% url 'individual_task_edit' task.pk %}" class="btn btn-secondary btn-sm">編集する</a>
-                                <button class="btn btn-danger btn-sm">削除する</button>
+                                <button class="btn btn-danger btn-sm" data-task-id="{{ task.id }}" onclick="showDeleteModal(this)">削除する</button>
                             </div>
                         </div>
                     </div>
@@ -80,4 +80,87 @@
         {% endif %}
     </div>
 </div> 
+
+<!-- 削除確認用のモーダル　-->
+<div id="deleteModal" class="modal" tabindex="-1" role="dialog" style="display:none;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                 <h5 class="modal-title">タスク削除確認</h5>
+                 <button type="button" class="btn-close" onclick="closeModal()" aria-label="閉じる"></button>
+            </div>
+            <div class="modal-body">
+                <p>このタスクを削除してもよろしいですか？</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn" onclick="deleteTask()">削除する</button>
+            </div>
+        </div>
+    </div>
+</div>    
+{% endblock %}
+
+{% block javascript %}
+<script>
+    function showDeleteModal(button) {
+        const taskId = button.getAttribute('data-task-id');
+        const deleteButton = document.getElementById('confirmDeleteBtn');
+        deleteButton.setAttribute('data-task-id', taskId);
+
+        // タスクIDをモーダルの削除ボタンに紐付け
+        deleteButton.setAttribute('data-task-id', taskId);
+
+        // モーダルを表示
+        document.getElementById('deleteModal').style.display = 'block';
+    }
+
+    function closeModal() {
+        // モーダルを非表示にする
+        document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    function deleteTask() {
+        const deleteButton = document.getElementById('confirmDeleteBtn');
+        const taskId = deleteButton.getAttribute('data-task-id');
+
+        fetch(`/tasks/${taskId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload(); // ページをリロードしてリストを更新
+            } else {
+                alert(data.message);
+            }
+            closeModal();
+        })
+        .catch(error => {
+            console.error('エラー:', error);
+            alert('削除中にエラーが発生しました。');
+            closeModal();
+        });
+    }
+
+    // CSRFトークンを取得するヘルパー関数
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
 {% endblock %}

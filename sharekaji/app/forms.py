@@ -90,6 +90,18 @@ class RecurringTaskForm(forms.ModelForm):
     class Meta:
         model = Recurrence
         fields = ['task_name', 'user', 'start_date', 'due_time', 'estimated_time', 'recurrence_type', 'weekday', 'day_of_month', 'end_date']
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance:
+            # 各フィールドの初期値を統一的に設定
+            self.fields['start_date'].initial = self.instance.start_date
+            self.fields['due_time'].initial = self.instance.due_time
+            self.fields['estimated_time'].initial = self.instance.estimated_time
+            self.fields['recurrence_type'].initial = self.instance.recurrence_type
+            self.fields['weekday'].initial = self.instance.weekday if self.instance.weekday is not None else ''
+            self.fields['day_of_month'].initial = self.instance.day_of_month if self.instance.day_of_month is not None else ''
+            self.fields['end_date'].initial = self.instance.end_date
 
 class IndividualTaskForm(forms.ModelForm):
     user = forms.ModelChoiceField(queryset=User.objects.none(), required=False)

@@ -1,11 +1,151 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>周期タスク編集</title>
-</head>
-<body>
-    <h1>周期タスク編集</h1>
-</body>
-</html>
+{% extends 'tasks/base.html' %}
+
+{% block title %}周期タスク編集{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h5>周期タスク登録</h5>
+        <form id="recurringTaskEditForm" method="post" action="{% url 'recurring_task_edit' recurrence.id %}">
+             {% csrf_token %}
+            <div class="mb-3">
+                <label for="task_name" class="form-label">家事名</label>
+                <input type="text" class="form-control" id="task_name" name="task_name" value="{{ form.task_name.value }}" required>
+            </div>
+            
+            <!-- 担当者選択フィールド: family_members を表示 -->
+            <div class="mb-3">
+                <label for="assignee" class="form-label">担当</label>
+                <select class="form-control" id="user" name="user">
+                    <option value=""></option>
+                    {% for member in family_members %}
+                        <option value="{{ member.id }}" {% if form.user.value == member.id %}selected{% endif %}>{{ member.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="start_date" class="form-label">タスク開始日</label>
+                <input type="date" class="form-control" id="start_date" name="start_date" value="{{ form.start_date.initial|date:'Y-m-d' }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="estimated_time" class="form-label">所要時間見込み</label>
+                <select class="form-control" id="estimated_time" name="estimated_time">
+                    <option value="30" {% if form.estimated_time.value == 30 %}selected{% endif %}>0.5時間</option>
+                    <option value="60" {% if form.estimated_time.value == 60 %}selected{% endif %}>1時間</option>
+                    <option value="90" {% if form.estimated_time.value == 90 %}selected{% endif %}>1.5時間</option>
+                    <option value="120" {% if form.estimated_time.value == 120 %}selected{% endif %}>2時間</option>
+                    <option value="150" {% if form.estimated_time.value == 150 %}selected{% endif %}>2.5時間</option>
+                    <option value="180" {% if form.estimated_time.value == 180 %}selected{% endif %} >3時間</option>
+                    <option value="210" {% if form.estimated_time.value == 210 %}selected{% endif %}>3.5時間</option>
+                    <option value="240" {% if form.estimated_time.value == 240 %}selected{% endif %}>4時間</option>
+                    <option value="270" {% if form.estimated_time.value == 270 %}selected{% endif %}>4.5時間</option>
+                    <option value="300" {% if form.estimated_time.value == 300 %}selected{% endif %}>5時間</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="due_time" class="form-label">対応完了時間</label>
+                <input type="time" class="form-control" id="due_time" name="due_time" value="{{ form.due_time.value|default:'' }}" required>
+            </div>
+
+            <!-- 繰り返し周期指定のフィールド -->
+            <div class="mb-3">
+                <label for="recurrence_type" class="form-label">繰り返し周期</label>
+                <select class="form-control" id="recurrence_type" name="recurrence_type">
+                    <option value="1" {% if form.recurrence_type.initial == 1 %}selected{% endif %}>日</option>
+                    <option value="2" {% if form.recurrence_type.initial == 2 %}selected{% endif %}>週</option>
+                    <option value="3" {% if form.recurrence_type.initial == 3 %}selected{% endif %}>月</option>
+                </select>
+            </div>
+
+            <!-- **週選択用のチェックボックス** -->
+            <div id="weekdays" class="mb-3" style="display: none;">
+                <label class="form-label">曜日指定</label><br>
+                <input type="checkbox" name="weekday" value="0" {% if form.weekday.initial == 0 %}checked{% endif %}> 月
+                <input type="checkbox" name="weekday" value="1" {% if form.weekday.initial == 1 %}checked{% endif %}> 火
+                <input type="checkbox" name="weekday" value="2" {% if form.weekday.initial == 2 %}checked{% endif %}> 水
+                <input type="checkbox" name="weekday" value="3" {% if form.weekday.initial == 3 %}checked{% endif %}> 木
+                <input type="checkbox" name="weekday" value="4" {% if form.weekday.initial == 4 %}checked{% endif %}> 金
+                <input type="checkbox" name="weekday" value="5" {% if form.weekday.initial == 5 %}checked{% endif %}> 土
+                <input type="checkbox" name="weekday" value="6" {% if form.weekday.initial == 6 %}checked{% endif %}> 日
+            </div>
+
+            <!-- **月選択用のセレクトボックス** -->
+            <div id="monthdays" class="mb-3" style="display: none;">
+                <label for="day_of_month" class="form-label">日付指定</label>
+                <select class="form-control" id="day_of_month" name="day_of_month">
+                    {% for day in day_range %}
+                        <option value="{{ day }}" {% if form.day_of_month.initial == day %}selected{% endif %}>{{ day }}日</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="end_date" class="form-label">繰り返し終了日</label>
+                <input type="date" class="form-control" id="end_date" name="end_date" value="{{ form.end_date.initial|date:'Y-m-d' }}"  required>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-primary">登録</button>
+            </div>
+        </form>
+        <a href="{% url 'recurring_tasks' %}" class="btn btn-secondary mt-3">戻る</a>
+    </div> 
+
+    <!--暗幕とポップアップ-->
+    <div class="modal-overlay" id="modalOverlay" style="display: none;" onclick="closePopup()"></div>
+    <div id="confirmBox" class="recurring-task-confilm-box" style="display: none;">
+           <p>この変更を未来のすべてのタスクに適用してもよろしいですか？</p>
+           <button class="ok-button" onclick="submitForm()">OK</button>
+           <button class="cancel-button" onclick="closePopup()">キャンセル</button>
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <!-- **JavaScriptで繰り返し周期に応じてフィールドの表示を切り替え** -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // 初期表示のために関数を一度実行
+            toggleRecurrenceFields();
+
+            // recurrence_type の変更時に toggleRecurrenceFields を実行
+            document.getElementById("recurrence_type").addEventListener("change", toggleRecurrenceFields);
+        });
+
+        function toggleRecurrenceFields() {
+            const recurrenceType = document.getElementById("recurrence_type").value;
+            const weekdays = document.getElementById("weekdays");
+            const monthdays = document.getElementById("monthdays");
+
+            if (recurrenceType == "2") { // 週
+                weekdays.style.display = "block";
+                monthdays.style.display = "none";
+            } else if (recurrenceType == "3") { // 月
+                weekdays.style.display = "none";
+                monthdays.style.display = "block";
+            } else { // 日
+                weekdays.style.display = "none";
+                monthdays.style.display = "none";
+            }
+        }
+
+        // ポップアップと暗幕の表示・非表示を制御する関数
+        function confirmSave(){
+            // ポップアップと暗幕を表示
+            document.getElementById('modalOverlay').style.display = 'block';
+            document.getElementById('confirmBox').style.display = 'block';
+        }
+
+        function closePopup(){
+            // ポップアップと暗幕を非表示
+            document.getElementById('modalOverlay').style.display = 'none';
+            document.getElementById('confirmBox').style.display = 'none';
+        }
+
+        function submitForm(){
+            // 保存処理を実行
+            document.getElementById('recurringTaskEditForm').submit();
+        }
+    </script>
+{% endblock %}

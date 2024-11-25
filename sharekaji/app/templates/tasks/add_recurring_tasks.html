@@ -45,8 +45,8 @@
             </div>
 
             <div class="mb-3">
-                <label for="due_time" class="form-label">対応完了期限</label>
-                <input type="time" class="form-control" id="due_time" name="due_time" required>
+                <label for="due_time" class="form-label">対応完了時間</label>
+                <input type="time" class="form-control" id="due_time" name="due_time" value="{{ form.due_time.value }}"  required>
             </div>
 
             <!-- 繰り返し周期指定のフィールド -->
