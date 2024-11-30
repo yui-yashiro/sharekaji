@@ -4,7 +4,6 @@
 
 {% block head%}
      {% load static %}
-    <link rel="stylesheet" href="{% static 'css/profile-image.css' %}">
     <link rel="stylesheet" href="{% static 'css/layout.css' %}">
 {% endblock %}
 
@@ -14,21 +13,19 @@
 
     <form method="post" enctype="multipart/form-data" action="{% url 'mypage' %}">
         {% csrf_token%}
-        <div class="profile-container">
-            <div style="position: relative; margin-bottom: 20px;">
-                {% if user.profile_image %}
-                    <img id="profile-image" src="{{ user.profile_image.url }}" alt="プロフィール画像" class="profile-image">
-                {% else %}
-                    <img id="profile-image" src="{% get_media_prefix %}default_profile_image.png" alt="プロフィール画像" class="profile-image">
-                {% endif %}
-                <div class="image-upload-label">
-                    <label for="image_upload" class="plus-icon-label">
-                        <span class="upload-text">+画像を登録</span>
-                    </label>
-                    <input type="file" id="image_upload" name="profile_image" style="display: none;" onchange="previewImage(event)">
-                </div>
-                <button type="submit" class="upload-button">アップロードする</button>
+        <div style="position: relative; margin-bottom: 20px;">
+            {% if user.profile_image %}
+                <img id="profile-image" src="{{ user.profile_image.url }}" alt="プロフィール画像"  style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 2px solid #ccc;">
+            {% else %}
+                <img id="profile-image" src="{% get_media_prefix %}default_profile_image.png" alt="プロフィール画像"  style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 2px solid #ccc;">
+            {% endif %}
+            <div class="image-upload-label">
+                <label for="image_upload" class="plus-icon-label">
+                    <span class="upload-text">+画像を登録</span>
+                </label>
+                <input type="file" id="image_upload" name="profile_image" style="display: none;" onchange="previewImage(event)">
             </div>
+            <button type="submit" class="upload-button">アップロードする</button>
         </div>
     </form>
 
@@ -51,9 +48,9 @@
             {% for member in family_members %}
             <li class="list-group-item">
                 {% if member.profile_image %}
-                    <img src="{{ member.profile_image.url }}" alt="{{ member.name }}" class="profile-icon">
+                    <img src="{{ member.profile_image.url }}" alt="{{ member.name }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #ccc;">
                 {% else %}
-                    <img src="{% get_media_prefix %}default_profile_image.png" alt="{{ member.name }}" class="profile-icon">
+                    <img src="{% get_media_prefix %}default_profile_image.png" alt="{{ member.name }}"  style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #ccc;">
                 {% endif %}
                 {{ member.name }}（{{ member.family_relationship|default:"続柄が設定されていません"  }}）
             </li>

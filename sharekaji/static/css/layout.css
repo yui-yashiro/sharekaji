@@ -6,7 +6,7 @@
 
 .profile-container {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 20px;
 }
 
@@ -221,56 +221,4 @@ html, body {
     background-color: #ccc;
     color: #333;
     border: none;
-}
-
-/* 背景の暗幕 */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 999;
-    display: none; /* 初期状態は非表示 */
-}
-
-/* 個別タスク追加ボタンの余白調整 */
-.today_tasks .add-task-button {
-    margin-top: 20px; /* 上部に余白を追加 */
-    margin-bottom: 20px; /* 下部にも余白を追加 */
-}
-
-/* タスクボックスと進捗報告ボックスの間の余白をなくす */
-.today_tasks .task-box + .task-progress-box {
-    margin-top: 0;
-    margin-bottom: 0;
-}
-
-/* 送信ボタンと次のタスク間の余白調整 */
-.today_tasks .btn-primary {
-    margin-bottom: 20px; /* 下部にも余白を追加 */
-}
-
-.task-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-}
-
-.task-deadline-and-actions {
-    display: flex;
-    justify-content: space-between; /* 左右に分散配置 */
-    align-items: center;
-    width: 100%;
-}
-
-.task-actions {
-    margin-left: 10px; /* 少し余白を入れてボタンが詰まらないように */
-}
-
-.task-actions button {
-    margin-left: 5px; /* ボタン同士に余白を追加 */
 }

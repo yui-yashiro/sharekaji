@@ -1,6 +1,11 @@
 {% extends 'tasks/base.html' %}
+{% load static %}
 
 {% block title %}本日のタスク一覧{% endblock %}
+
+{% block modal_css %}
+<link rel="stylesheet" href="{% static 'css/modal.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="today_tasks">
@@ -81,24 +86,23 @@
     </div>
 </div> 
 
-<!-- 削除確認用のモーダル　-->
-<div id="deleteModal" class="modal" tabindex="-1" role="dialog" style="display:none;">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                 <h5 class="modal-title">タスク削除確認</h5>
-                 <button type="button" class="btn-close" onclick="closeModal()" aria-label="閉じる"></button>
-            </div>
-            <div class="modal-body">
-                <p>このタスクを削除してもよろしいですか？</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteBtn" onclick="deleteTask()">削除する</button>
-            </div>
-        </div>
+<!-- 暗幕 -->
+<div class="custom-modal-overlay"></div>
+
+<!-- 削除確認用のモーダル -->
+<div id="deleteModal" class="custom-modal">
+    <div class="modal-header">
+        <h5 class="modal-title">タスク削除確認</h5>
+        <button type="button" class="btn-close" onclick="closeModal()" aria-label="閉じる"></button>
     </div>
-</div>    
+    <div class="modal-body">
+        <p>このタスクを削除してもよろしいですか？</p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn" onclick="deleteTask()">削除する</button>
+    </div>
+</div>
 {% endblock %}
 
 {% block javascript %}
@@ -108,16 +112,15 @@
         const deleteButton = document.getElementById('confirmDeleteBtn');
         deleteButton.setAttribute('data-task-id', taskId);
 
-        // タスクIDをモーダルの削除ボタンに紐付け
-        deleteButton.setAttribute('data-task-id', taskId);
-
-        // モーダルを表示
-        document.getElementById('deleteModal').style.display = 'block';
+        // モーダルと暗幕の両方にアクティブ状態を追加
+        document.getElementById('deleteModal').classList.add('active');
+        document.querySelector('.custom-modal-overlay').classList.add('active');
     }
 
     function closeModal() {
-        // モーダルを非表示にする
-        document.getElementById('deleteModal').style.display = 'none';
+        // モーダルと暗幕の両方からアクティブ状態を削除
+        document.getElementById('deleteModal').classList.remove('active');
+        document.querySelector('.custom-modal-overlay').classList.remove('active');
     }
 
     function deleteTask() {
@@ -134,7 +137,9 @@
         .then(data => {
             if (data.success) {
                 alert(data.message);
-                location.reload(); // ページをリロードしてリストを更新
+                // 削除されたタスクを非同期で画面から消す
+                const taskElement = document.querySelector(`[data-task-id="${taskId}"]`).closest('.task-box');
+                taskElement.remove();
             } else {
                 alert(data.message);
             }

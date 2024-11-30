@@ -1,0 +1,89 @@
+/* 背景の暗幕 */
+.custom-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%; /* 高さを100%に調整 */
+    background-color: rgba(0, 0, 0, 0.75);
+    z-index: 1050;
+    display: none;
+}
+
+.custom-modal-overlay.active {
+    display: block;
+    z-index: 1050; 
+}
+
+/* モーダルの基本スタイル */
+.custom-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1100;
+    width: 80%;
+    max-width: 500px;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* モーダルがアクティブな状態 */
+.custom-modal.active {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+    z-index: 1100;
+}
+
+/* ナビゲーションバーのz-index調整 */
+.navbar {
+    z-index: 1000; /* モーダルのz-indexより低い値に調整 */
+}
+
+/* モーダルのヘッダー */
+.custom-modal .modal-header {
+    padding: 15px;
+    border-bottom: 1px solid #ddd;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* モーダルのボディ */
+.custom-modal .modal-body {
+    padding: 15px;
+    font-size: 16px;
+}
+
+/* モーダルのフッター */
+.custom-modal .modal-footer {
+    padding: 15px;
+    text-align: right;
+    border-top: 1px solid #ddd;
+}
+
+/* ボタンのスタイル */
+.custom-modal-footer .btn {
+    padding: 8px 20px;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.custom-modal-footer .btn-secondary {
+    background-color: #ccc;
+    color: #333;
+    border: none;
+}
+
+.custom-modal-footer .btn-danger {
+    background-color: #e74c3c;
+    color: #fff;
+    border: none;
+}
