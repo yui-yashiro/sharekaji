@@ -1,0 +1,26 @@
+{% extends 'tasks/base.html' %}
+
+{% block title %}タスク削除確認{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h4 class="page-title">タスクの削除確認</h4>
+    <p>以下のタスクを本当に削除してよろしいですか？</p>
+    <ul>
+        <li><strong>家事内容：</strong>{{ recurring_task.task_name }}</li>
+        <li><strong>担当者：</strong> {{ recurring_task.assignee }}</li>
+        <li><strong>タスク開始日：</strong> {{ recurring_task.start_date|date:"Y-m-d" }}</li>
+        <li><strong>所要時間見込み：</strong>  {{ recurring_task.estimated_time }}</li>
+        <li><strong>対応完了期限：</strong> {{ recurring_task.due_time|time }}</li>
+        <li><strong>繰り返し周期：</strong> {{ recurring_task.recurrence_type }}</li>
+        <li><strong>繰り返し終了日：</strong> {{ recurring_task.end_date|date:"Y-m-d" }}</li>
+    </ul>
+    <div class="task-actions mt-3">
+        <form method="post" action="">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">削除する</button>
+            <a href="{% url 'recurring_tasks' %}" class="btn btn-secondary">キャンセル</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

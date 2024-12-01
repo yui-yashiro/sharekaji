@@ -15,6 +15,7 @@ from django.http import JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET
+from django.contrib import messages
 
 # Create your views here.
 class SignUpView(View):
@@ -554,11 +555,44 @@ class IndividualTaskEditView(LoginRequiredMixin, UpdateView):
         
         return super().form_valid(form)
 
-class TaskDeleteView(LoginRequiredMixin, View):
+class IndividualTaskDeleteView(LoginRequiredMixin, View):
+    def get(self, request, task_id):
+        task = get_object_or_404(Task, id=task_id, user=request.user)
+        return render(request, 'tasks/individual_task_delete.html', {'task': task})
+    
+    def post(self, request, task_id):
+        task = get_object_or_404(Task, id=task_id, user=request.user)
+        task.delete()
+        messages.success(request, "タスクが正常に削除されました。")
+        return redirect('today_tasks')
+
+class RecurringTaskDeleteView(LoginRequiredMixin, View):
+    def get(self, request, task_id):
+        recurring_task = get_object_or_404(Recurrence, id=task_id, user=request.user)
+        return render(request, 'tasks/recurring_task_delete.html', {'recurring_task': recurring_task})
+
     def post(self, request, task_id):
         try:
-            task = Task.objects.get(id=task_id, user=request.user)
-            task.delete()
-            return JsonResponse({"success": True, "message": "タスクを削除しました。"})
-        except Task.DoesNotExist:
-            return JsonResponse({"success":False, "message": "タスクが見つかりません。"})
+            recurring_task = get_object_or_404(Recurrence, id=task_id, user=request.user)
+
+            # 削除対象の周期タスクに基づいて生成された未来の日付の個別タスクを取得
+            future_tasks = Task.objects.filter(
+                recurrence=recurring_task,
+                scheduled_datetime__gte=timezone.now()
+            )
+
+            # 未来の個別タスクが存在する場合は削除
+            if future_tasks.exists():
+                future_tasks.delete()
+
+            # 周期タスク自体を削除
+            recurring_task.delete()
+
+            # 成功メッセージを追加
+            messages.success(request, "周期タスクと関連する未来日のタスクが正常に削除されました。")
+
+        except Recurrence.DoesNotExist:
+            # エラーメッセージを追加
+            messages.error(request, "削除しようとした周期タスクが見つかりませんでした。")
+        
+        return redirect('recurring_tasks')

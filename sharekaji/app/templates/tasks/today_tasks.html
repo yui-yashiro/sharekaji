@@ -10,6 +10,16 @@
 {% block content %}
 <div class="today_tasks">
     <div class="container mt-4">
+
+        <!-- メッセージ表示ブロックの追加 -->
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert {{ message.tags }}" style="color: red; font-weight: bold;">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <!-- アクセスした日の日付を表示 -->
         <h3 class="text-center"> {{ current_date|date:"Y年 F j日" }}（{{ current_date|date:"l" }}）</h3>
         <!-- 「個別タスクを追加する」ボタンは常時表示 -->
@@ -31,7 +41,7 @@
                             <p><strong>対応完了期限：</strong> {{ task.due_datetime|date:"H:i" }}</p>
                             <div class="action-buttons">
                                 <a href="{% url 'individual_task_edit' task.pk %}" class="btn btn-secondary btn-sm">編集する</a>
-                                <button class="btn btn-danger btn-sm" data-task-id="{{ task.id }}" onclick="showDeleteModal(this)">削除する</button>
+                                <a href="{% url 'individual_task_delete' task.pk %}" class="btn btn-danger btn-sm">削除する</a>
                             </div>
                         </div>
                     </div>
@@ -85,87 +95,4 @@
         {% endif %}
     </div>
 </div> 
-
-<!-- 暗幕 -->
-<div class="custom-modal-overlay"></div>
-
-<!-- 削除確認用のモーダル -->
-<div id="deleteModal" class="custom-modal">
-    <div class="modal-header">
-        <h5 class="modal-title">タスク削除確認</h5>
-        <button type="button" class="btn-close" onclick="closeModal()" aria-label="閉じる"></button>
-    </div>
-    <div class="modal-body">
-        <p>このタスクを削除してもよろしいですか？</p>
-    </div>
-    <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
-        <button type="button" class="btn btn-danger" id="confirmDeleteBtn" onclick="deleteTask()">削除する</button>
-    </div>
-</div>
-{% endblock %}
-
-{% block javascript %}
-<script>
-    function showDeleteModal(button) {
-        const taskId = button.getAttribute('data-task-id');
-        const deleteButton = document.getElementById('confirmDeleteBtn');
-        deleteButton.setAttribute('data-task-id', taskId);
-
-        // モーダルと暗幕の両方にアクティブ状態を追加
-        document.getElementById('deleteModal').classList.add('active');
-        document.querySelector('.custom-modal-overlay').classList.add('active');
-    }
-
-    function closeModal() {
-        // モーダルと暗幕の両方からアクティブ状態を削除
-        document.getElementById('deleteModal').classList.remove('active');
-        document.querySelector('.custom-modal-overlay').classList.remove('active');
-    }
-
-    function deleteTask() {
-        const deleteButton = document.getElementById('confirmDeleteBtn');
-        const taskId = deleteButton.getAttribute('data-task-id');
-
-        fetch(`/tasks/${taskId}/delete/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                // 削除されたタスクを非同期で画面から消す
-                const taskElement = document.querySelector(`[data-task-id="${taskId}"]`).closest('.task-box');
-                taskElement.remove();
-            } else {
-                alert(data.message);
-            }
-            closeModal();
-        })
-        .catch(error => {
-            console.error('エラー:', error);
-            alert('削除中にエラーが発生しました。');
-            closeModal();
-        });
-    }
-
-    // CSRFトークンを取得するヘルパー関数
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-</script>
 {% endblock %}

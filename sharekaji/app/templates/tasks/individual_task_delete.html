@@ -1,0 +1,23 @@
+{% extends 'tasks/base.html' %}
+
+{% block title %}タスク削除確認{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h4 class="page-title">タスクの削除確認</h4>
+    <p>以下のタスクを本当に削除してよろしいですか？</p>
+    <ul>
+        <li><strong>家事内容：</strong> {{ task.task_name }}</li>
+        <li><strong>担当者：</strong> {{ task.user.name }}</li>
+        <li><strong>所要時間見込み：</strong> {{ task.estimated_time_hours|floatformat:1 }}時間</li>
+        <li><strong>対応完了期限：</strong> {{ task.due_datetime|date:"H:i" }}</li>
+    </ul>
+    <div class="task-actions mt-3">
+        <form method="post" action="">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">削除する</button>
+            <a href="{% url 'today_tasks' %}" class="btn btn-secondary">キャンセル</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
