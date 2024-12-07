@@ -43,4 +43,5 @@ urlpatterns = [
     path('tasks/today/<str:selected_date>/', TodayTasksView.as_view(), name='tasks_by_date'),
     path('tasks/<int:task_id>/delete/', IndividualTaskDeleteView.as_view(), name='individual_task_delete'),
     path('recurring_tasks/<int:task_id>/delete/', RecurringTaskDeleteView.as_view(), name='recurring_task_delete'),
+    path('tasks/<int:task_id>/update_progress/', lambda request, task_id: __import__('app.views').views.update_task_progress(request, task_id), name='update_task_progress'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

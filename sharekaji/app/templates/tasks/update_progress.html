@@ -1,0 +1,27 @@
+{% extends 'tasks/base.html' %}
+
+{% block title %}進捗更新{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3 class="text-center"><strong>進捗報告</strong></h3>
+    <form method="post" action="">
+        {% csrf_token %}
+        
+        <div class="form-group mt-3">
+            <label for="completion_status"><strong>ステータス：</strong></label>
+            <select id="completion_status" name="completion_status" class="form-select">
+                <option value="True" {% if task.completion_status %}selected{% endif %}>完了</option>
+                <option value="False" {% if not task.completion_status %}selected{% endif %}>未完了</option>
+            </select>
+        </div>
+
+        <div class="form-group mt-3">
+            <label for="comment"><strong>コメント：</strong></label>
+            <textarea id="comment" name="comment" class="form-control">{{ task.comment }}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-3">進捗を更新する</button>
+    </form>
+</div>
+{% endblock %}

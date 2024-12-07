@@ -39,42 +39,29 @@
                         </div>
                         <div class="task-deadline-and-actions">
                             <p><strong>対応完了期限：</strong> {{ task.due_datetime|date:"H:i" }}</p>
-                            <div class="action-buttons">
-                                <a href="{% url 'individual_task_edit' task.pk %}" class="btn btn-secondary btn-sm">編集する</a>
-                                <a href="{% url 'individual_task_delete' task.pk %}" class="btn btn-danger btn-sm">削除する</a>
+                            <div class="action-buttons d-flex justify-content-end">
+                                <a href="{% url 'individual_task_edit' task.pk %}" class="btn btn-secondary btn-sm mx-1">編集する</a>
+                                <a href="{% url 'individual_task_delete' task.pk %}" class="btn btn-danger btn-sm mx-1">削除する</a>
+                                <a href="{% url 'update_task_progress' task.pk %}" class="btn btn-primary btn-sm mx-1">進捗を報告する</a>
                             </div>
                         </div>
                     </div>
-
+                    
                     <div class="task-progress-box p-3 mb-3 border rounded">
                         <div class="row">
                             <div class="col-md-6">
-                                <label for="status"><strong>ステータス：</strong></label>
-                                <select id="status" class="form-select">
-                                    <option value="complete" {% if task.completion_status %}selected{% endif %}>完了</option>
-                                    <option value="incomplete" {% if not task.completion_status %}selected{% endif %}>未完了</option>
-                                </select>
+                                <p><strong>ステータス：</strong>
+                                    {% if task.completion_status %}
+                                        完了
+                                    {% else %}
+                                        未完了
+                                    {% endif %}
+                                </p>
                             </div>
                             <div class="col-md-6">
                                 <p><strong>担当者コメント：</strong> {{ task.comment }}</p>
                             </div>
                         </div>
-                        <div class="reaction mt-3">
-                            <p>リアクション：</p>
-                            <span role="button" class="reaction">&#128077;</span>
-                            <span role="button" class="reaction">&#128151;</span>
-                            <span role="button" class="reaction">&#128079;</span>
-                            <span role="button" class="reaction">&#128583;</span>
-                        </div>
-                        <button class="btn btn-secondary btn-sm mt-3">進捗を編集する</button>
-                    </div>
-
-                    <div class="comment-box mt-3">
-                        {% if task.comment %}
-                            <p><strong>{{ task.user.name }}:</strong> {{ task.comment }}</p>
-                        {% else %}
-                            <p>コメントはありません。</p>
-                        {% endif %}
                     </div>
 
                     <!-- コメントを入力するバー -->

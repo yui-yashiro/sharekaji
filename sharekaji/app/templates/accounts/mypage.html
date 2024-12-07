@@ -29,17 +29,34 @@
         </div>
     </form>
 
-            <!-- ユーザー情報 -->
-            <div class="profile-info ml-3">
-            <h4>{{ user.name }}</h4> 
-            <a href="{% url 'account_edit' %}">アカウント情報変更</a>
-            <h4>{{ family.name|default:"家族名が設定されていません" }}</h4> 
-            <a href="{% url 'family_edit' %}">家族情報編集</a> 
-            <h4>{{ user.family_relationship|default:"続柄が設定されていません" }}</h4> 
-            <a href="{% url 'account_delete' %}">アカウント削除</a> 
+    <!-- ユーザー情報 -->
+    <div class="container">
+        <div class="row mb-3 align-items-center">
+            <div class="col-md-3">
+                <h5>名前/ニックネーム：{{ user.name }}</h5> 
+            </div>
+            <div class="col-md-8">
+                <a href="{% url 'account_edit' %}">アカウント情報変更</a>
             </div>
         </div>
-    </form>
+
+        <div class="row mb-3 align-items-center">
+            <div class="col-md-3">
+                <h5>家族名：{{ family.name|default:"家族名が設定されていません" }}</h5>
+            </div>
+            <div class="col-md-8">
+            <a href="{% url 'family_edit' %}">家族情報編集</a>
+            </div>
+        </div>
+        <div class="row mb-3 align-items-center">
+            <div class="col-md-3">
+                <h5>続柄：{{ user.family_relationship|default:"続柄が設定されていません" }}</h5>
+            </div>
+            <div class="col-md-8">
+                <a href="{% url 'account_delete' %}">アカウント削除</a> 
+            </div>
+        </div>
+    </div>
 
     <!-- 家族一覧 -->
     <div class="my-5">

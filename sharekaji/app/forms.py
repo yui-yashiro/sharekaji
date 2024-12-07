@@ -114,3 +114,12 @@ class IndividualTaskForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if family_id:
             self.fields['user'].queryset = User.objects.filter(family_id=family_id)
+
+class ProgressForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = ['completion_status', 'comment']
+        labels = {
+            'completion_status': 'ステータス',
+            'comment': 'コメント',
+        }

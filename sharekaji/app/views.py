@@ -1,21 +1,20 @@
 from django.shortcuts import render, redirect, get_object_or_404, reverse
 from django.views import View
-from app.forms import SignupForm, ProfileImageForm, AccountEditForm, FamilyEditForm, RecurringTaskForm, IndividualTaskForm
 from django.contrib.auth import authenticate, login, update_session_auth_hash, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.db.models import Count
 from django.utils import timezone
 from datetime import timedelta, datetime
-from .models import User, Family, Task, Comment, Recurrence
 from django.views.generic.edit import CreateView, UpdateView
 from django.urls import reverse_lazy
-import uuid
 from django.http import JsonResponse
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 from django.contrib import messages
+import uuid
+from .models import User, Family, Task, Comment, Recurrence
+from app.forms import SignupForm, ProfileImageForm, AccountEditForm, FamilyEditForm, RecurringTaskForm, IndividualTaskForm
 
 # Create your views here.
 class SignUpView(View):
@@ -82,9 +81,13 @@ class HomeView(View):
             for task in tasks
         ]
 
+        # 完了したタスクを取得
+        completed_tasks = Task.objects.filter(completion_status=True, user__family_id=request.user.family_id).exclude(user=request.user)
+
         context = {
             "event_data": event_data,
             "tasks": tasks,
+            "completed_tasks": completed_tasks
         }
         return render(request, 'tasks/home.html', context)
 
@@ -596,3 +599,20 @@ class RecurringTaskDeleteView(LoginRequiredMixin, View):
             messages.error(request, "削除しようとした周期タスクが見つかりませんでした。")
         
         return redirect('recurring_tasks')
+    
+# タスク進捗を更新するビュー
+@login_required
+def update_task_progress(request, task_id):
+    from .forms import ProgressForm
+    task = get_object_or_404(Task, id=task_id)
+
+    if request.method == 'POST':
+        form = ProgressForm(request.POST, instance=task)
+        if form.is_valid():
+            form.save()
+            messages.success(request, '進捗が更新されました')
+            return redirect('today_tasks')
+    else:
+        form = ProgressForm(instance=task)
+
+    return render(request, 'tasks/update_progress.html', {'form':form, 'task':task})
