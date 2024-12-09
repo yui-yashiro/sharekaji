@@ -62,20 +62,40 @@
                                 <p><strong>担当者コメント：</strong> {{ task.comment }}</p>
                             </div>
                         </div>
+
+                    <div class="reaction-container d-flex align-items-center" style="position: relative;">
+                        <button type="button" class="btn btn-light reaction-btn" style="padding: 5px 10px; margin: 0;">
+                            ♡
+                        </button>
+
+                        <!-- スタンプ一覧 -->
+                        <div class="reaction-list" style="display: none; position: absolute; top: -60px; left: 0; background: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 5px; z-index: 10;">
+                            <button type="button" class="reaction-item" data-task-id="{{ task.id }}" data-emoji="👍">👍</button>
+                            <button type="button" class="reaction-item" data-task-id="{{ task.id }}" data-emoji="💖">💖</button>
+                            <button type="button" class="reaction-item" data-task-id="{{ task.id }}" data-emoji="👏">👏</button>
+                            <button type="button" class="reaction-item" data-task-id="{{ task.id }}" data-emoji="🙇‍♀️">🙇‍♀️</button>
+                        </div>
+
+                        <!-- リアクション表示-->
+                        <div class="reaction-display mt-2">
+                            {% for reaction in task.reactions %}
+                            <span>{{ reaction.emoji }} {{ reaction.count }}</span>
+                            {% endfor %}
+                        </div>
                     </div>
+                </div>        
 
                     <!-- コメントを入力するバー -->
                     <div class="comment-bar mt-3">
                         <form method="post" action="{% url 'today_tasks' %}">
                             {% csrf_token %}
                             <input type="hidden" name="task_id" value="{{ task.id }}">
-                            <div class="form-group">
+                            <div class="form-group d-flex justify-content-end">
                                 <input type="text" name="comment" class="form-control" placeholder="コメントを入力してください...">
+                                <button type="submit" class="btn btn-primary mt-2">送信</button>
                             </div>
-                            <button type="submit" class="btn btn-primary mt-2">送信</button>
                         </form>
                     </div>
-                </div>
             {% endfor %}
         {% else %}
             <p>現在、タスクがありません。新しいタスクを追加してください。</p>

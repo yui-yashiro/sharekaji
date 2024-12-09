@@ -98,10 +98,17 @@ class Comment(models.Model):
 
 # reactions
 class Reaction(models.Model):
+    REACTION_TYPES = [
+        (0, '👍'),
+        (1, '💖'),
+        (2, '👏'),
+        (3, '🙇‍♀️'),
+   ]
     task = models.ForeignKey(Task, on_delete=models.CASCADE)  # tasksとのリレーション
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # usersとのリレーション
-    reaction_type = models.IntegerField(null=True, blank=True) # リアクションの種類 0=👍、1=❤、2=👏、3=🙇‍♀️
+    reaction_type = models.IntegerField(choices=REACTION_TYPES, null=True, blank=True) # リアクションの種類 0=👍、1=💖、2=👏、3=🙇‍♀️
     created_at = models.DateTimeField(auto_now_add=True)  # リアクション日時
 
     class Meta:
         db_table = 'reactions'
+        unique_together = ('task', 'user', 'reaction_type')

@@ -13,7 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib import messages
 import uuid
-from .models import User, Family, Task, Comment, Recurrence
+from .models import User, Family, Task, Comment, Recurrence, Reaction
 from app.forms import SignupForm, ProfileImageForm, AccountEditForm, FamilyEditForm, RecurringTaskForm, IndividualTaskForm
 
 # Create your views here.
@@ -105,6 +105,19 @@ class TodayTasksView(LoginRequiredMixin, View):
             scheduled_datetime__date=current_date
         )
 
+        # タスクごとのリアクションを集計
+        tasks_with_reactions = []
+        for task in tasks:
+            reactions = Reaction.objects.filter(task=task).values('reaction_type').annotate(count=Count('reaction_type'))
+            reaction_data = [
+                {
+                    "emoji": dict(Reaction.REACTION_TYPES).get(reaction["reaction_type"], "❓"),
+                    "count": reaction["count"],
+                }
+                for reaction in reactions
+            ]
+            tasks_with_reactions.append({"task": task, "reactions": reaction_data})
+
         # 取得したタスクの日時をローカルタイムに変換
         for task in tasks:
             task.scheduled_datetime = timezone.localtime(task.scheduled_datetime)
@@ -114,6 +127,7 @@ class TodayTasksView(LoginRequiredMixin, View):
         # テンプレートに渡す
         return render(request, 'tasks/today_tasks.html', {
             'tasks': tasks,
+            'reaction_emojis': dict(Reaction.REACTION_TYPES),
             'current_date': current_date
         })
 
@@ -616,3 +630,52 @@ def update_task_progress(request, task_id):
         form = ProgressForm(instance=task)
 
     return render(request, 'tasks/update_progress.html', {'form':form, 'task':task})
+
+# リアクション表示のビュー
+@require_POST
+@login_required
+def toggle_reaction(request, task_id):
+    import json
+
+    # タスクの取得
+    task = get_object_or_404(Task, id=task_id)
+
+    try:
+        # リクエストボディのデータを解析
+        data = json.loads(request.body)
+        reaction_type = int(data.get("reaction_type"))
+
+        # バリデーション: reaction_type が有効な範囲内か確認
+        valid_reactions = [choice[0] for choice in Reaction.REACTION_TYPES]
+        if reaction_type not in valid_reactions:
+            return JsonResponse({"error": "Invalid reaction type."}, status=400)
+
+        # リアクションの作成または削除
+        reaction, created = Reaction.objects.get_or_create(
+            task=task,
+            user=request.user,
+            reaction_type=reaction_type
+        )
+        if not created:
+            reaction.delete()
+
+        # 現在のリアクションカウントを取得
+        reactions = (
+            Reaction.objects.filter(task=task)
+            .values("reaction_type")
+            .annotate(count=Count("reaction_type"))
+        )
+
+        # レスポンスデータを準備
+        response_data = [
+            {
+                "emoji": dict(Reaction.REACTION_TYPES).get(reaction["reaction_type"], "❓"),
+                "count": reaction["count"],
+            }
+            for reaction in reactions
+        ]
+
+        return JsonResponse({"reaction_counts": response_data})
+
+    except (json.JSONDecodeError, ValueError, TypeError) as e:
+        return JsonResponse({"error": "Invalid data received."}, status=400)
