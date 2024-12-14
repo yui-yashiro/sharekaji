@@ -1,19 +1,23 @@
-from django.shortcuts import render, redirect, get_object_or_404, reverse
-from django.views import View
-from django.contrib.auth import authenticate, login, update_session_auth_hash, logout
+import uuid
+from datetime import datetime, timedelta
+
+# Django公式モジュール
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.db.models import Count
-from django.utils import timezone
-from datetime import timedelta, datetime
-from django.views.generic.edit import CreateView, UpdateView
-from django.urls import reverse_lazy
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render, reverse
+from django.urls import reverse_lazy
+from django.utils import timezone
+from django.views import View
 from django.views.decorators.http import require_GET, require_POST
-from django.contrib import messages
-import uuid
-from .models import User, Family, Task, Comment, Recurrence, Reaction
+from django.views.generic.edit import CreateView, UpdateView
+
+# アプリケーション内のモジュール
+from .models import Family, User, Task, Reaction, Recurrence, Comment
 from app.forms import SignupForm, ProfileImageForm, AccountEditForm, FamilyEditForm, RecurringTaskForm, IndividualTaskForm
 
 # Create your views here.
