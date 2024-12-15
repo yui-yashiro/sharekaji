@@ -64,8 +64,8 @@
                         </div>
 
                     <div class="reaction-container d-flex align-items-center" style="position: relative;">
-                        <button type="button" class="btn btn-light reaction-btn" style="padding: 5px 10px; margin: 0;">
-                            ♡
+                        <button type="button" class="btn btn-light reaction-btn">
+                            <i class="fas fa-heart" style="color: gray; font-size: 20px;"></i>
                         </button>
 
                         <!-- スタンプ一覧 -->
@@ -84,17 +84,36 @@
                         </div>
                     </div>
                 </div>        
+                    
+                    <!-- コメントリスト -->
+                    <div class="comments-section">
+                        <div class="comments-list" id="comments-list-{{ task.id }}">
+                            {% for comment in task.comments.all %}
+                                <div class="comment-box border p-3 mb-2 rounded d-flex align-items-center" id="comment-{{ comment.id }}">
+                                    <img src="{{ comment.user.profile_image.url|default:'/media/profile_images/default_profile_image.png' }}"
+                                        alt="avatar" 
+                                        class="rounded-circle mr-2" 
+                                        style="width: 40px; height: 40px;">
+                                    <div>
+                                        <strong>{{ comment.user.username }}</strong>
+                                        <p class="mb-1">{{ comment.content }}</p>
+                                    </div>
+                                    {% if comment.user == request.user %}
+                                        <button class="delete-comment-btn btn btn-sm btn-danger ml-auto" data-comment-id="{{ comment.id }}">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
 
                     <!-- コメントを入力するバー -->
-                    <div class="comment-bar mt-3">
-                        <form method="post" action="{% url 'today_tasks' %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="task_id" value="{{ task.id }}">
-                            <div class="form-group d-flex justify-content-end">
-                                <input type="text" name="comment" class="form-control" placeholder="コメントを入力してください...">
-                                <button type="submit" class="btn btn-primary mt-2">送信</button>
-                            </div>
-                        </form>
+                    <div class="comment-bar">
+                        <input type="text" name="comment" id="comment-input-{{ task.id }}" class="form-control" placeholder="コメントを入力してください...">
+                        <button type="button" class="btn btn-primary mt-2 send-comment-btn" data-task-id="{{ task.id }}">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
                     </div>
             {% endfor %}
         {% else %}

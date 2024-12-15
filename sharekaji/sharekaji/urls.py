@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
-from app.views import SignUpView, LoginView, HomeView, TodayTasksView, RecurringTaskListView, RecurringTaskCreateView, Individual_TaskCreateView, TaskAnalysisView, MyPageView, AccountEditView, FamilyEditView, SignupInviteView, FamilyInviteUrlView, AccountDeleteView, RecurringTaskEditView, IndividualTaskEditView, IndividualTaskDeleteView, RecurringTaskDeleteView, generate_invite_url, signup_family_invite, toggle_reaction
+from app.views import SignUpView, LoginView, HomeView, TodayTasksView, RecurringTaskListView, RecurringTaskCreateView, Individual_TaskCreateView, TaskAnalysisView, MyPageView, AccountEditView, FamilyEditView, SignupInviteView, FamilyInviteUrlView, AccountDeleteView, RecurringTaskEditView, IndividualTaskEditView, IndividualTaskDeleteView, RecurringTaskDeleteView, generate_invite_url, signup_family_invite, toggle_reaction, add_comment, delete_comment
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -44,5 +44,7 @@ urlpatterns = [
     path('tasks/<int:task_id>/delete/', IndividualTaskDeleteView.as_view(), name='individual_task_delete'),
     path('recurring_tasks/<int:task_id>/delete/', RecurringTaskDeleteView.as_view(), name='recurring_task_delete'),
     path('tasks/<int:task_id>/update_progress/', lambda request, task_id: __import__('app.views').views.update_task_progress(request, task_id), name='update_task_progress'),
-    path('tasks/<int:task_id>/toggle_reaction/', toggle_reaction, name='toggle_reaction')
+    path('tasks/<int:task_id>/toggle_reaction/', toggle_reaction, name='toggle_reaction'),
+    path('comments/add/', add_comment, name='add_comment'),
+    path('comments/delete/<int:comment_id>/', delete_comment, name='delete_comment')
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

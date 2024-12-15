@@ -14,6 +14,7 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views import View
 from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.csrf import csrf_protect
 from django.views.generic.edit import CreateView, UpdateView
 
 # アプリケーション内のモジュール
@@ -135,17 +136,38 @@ class TodayTasksView(LoginRequiredMixin, View):
             'current_date': current_date
         })
 
-    def post(self, request):
-        # コメントの保存処理
+@csrf_protect
+@login_required
+def add_comment(request):
+    if request.method == "POST":
         comment_text = request.POST.get("comment")
         task_id = request.POST.get("task_id")
-        task = Task.objects.get(pk=task_id)
-        Comment.objects.create(user=request.user, comment=comment_text, task=task)
+        user = request.user
         
-        # デバッグ用出力
-        print(f"コメントが追加されました: {comment_text}, タスクID: {task_id}")
-        
-        return redirect('today_tasks')
+        if comment_text and task_id:
+            comment = Comment.objects.create(
+                task_id=task_id,
+                user=user,
+                comment=comment_text
+            )
+
+        return JsonResponse({
+            "id": comment.id,
+            "comment": comment_text,
+            "user": user.name,
+            'avatar': user.profile_image.url if user.profile_image else '',
+            'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+        })
+    return JsonResponse({'error': 'コメントの送信に失敗しました。'}, status=400)
+
+@csrf_protect
+@login_required
+def delete_comment(request, comment_id):
+    if request.method == "POST":
+        comment = get_object_or_404(Comment, id=comment_id, user=request.user)
+        comment.delete()
+        return JsonResponse({"success": True})
+    return JsonResponse({"error": "Invalid request method"}, status=405)
 
 class RecurringTaskListView(View):
     def get(self, request):

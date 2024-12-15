@@ -216,3 +216,27 @@ html, body {
     color: #333;
     border: none;
 }
+
+/* コメントボックスのスタイル調整 */
+.comment-box {
+    display: flex;
+    align-items: center;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+}
+
+.comment-box img {
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+    object-fit: cover;
+}
+
+.comment-box p {
+    margin: 0;
+    font-size: 14px;
+    color: #333;
+}
