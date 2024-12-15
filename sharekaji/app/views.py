@@ -108,7 +108,7 @@ class TodayTasksView(LoginRequiredMixin, View):
         tasks = Task.objects.filter(
             user__family_id=request.user.family_id,
             scheduled_datetime__date=current_date
-        )
+        ).prefetch_related('task_comments__user')
 
         # タスクごとのリアクションを集計
         tasks_with_reactions = []
@@ -155,8 +155,8 @@ def add_comment(request):
             "id": comment.id,
             "comment": comment_text,
             "user": user.name,
-            'avatar': user.profile_image.url if user.profile_image else '',
-            'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'avatar': user.profile_image.url if user.profile_image and hasattr(user.profile_image, 'url') else '/media/profile_images/default_profile_image.png',
+            "created_at": comment.created_at.strftime('%Y-%m-%d %H:%M:%S'),
         })
     return JsonResponse({'error': 'コメントの送信に失敗しました。'}, status=400)
 

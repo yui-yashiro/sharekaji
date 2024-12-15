@@ -63,40 +63,40 @@
                             </div>
                         </div>
 
-                    <div class="reaction-container d-flex align-items-center" style="position: relative;">
-                        <button type="button" class="btn btn-light reaction-btn">
-                            <i class="fas fa-heart" style="color: gray; font-size: 20px;"></i>
-                        </button>
+                        <div class="reaction-container d-flex align-items-center" style="position: relative;">
+                            <button type="button" class="btn btn-light reaction-btn">
+                                <i class="fas fa-heart" style="color: gray; font-size: 20px;"></i>
+                            </button>
 
-                        <!-- スタンプ一覧 -->
-                        <div class="reaction-list" style="display: none; position: absolute; top: -60px; left: 0; background: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 5px; z-index: 10;">
-                            <button type="button" class="reaction-item" data-task-id="{{ task.id }}" data-emoji="👍">👍</button>
-                            <button type="button" class="reaction-item" data-task-id="{{ task.id }}" data-emoji="💖">💖</button>
-                            <button type="button" class="reaction-item" data-task-id="{{ task.id }}" data-emoji="👏">👏</button>
-                            <button type="button" class="reaction-item" data-task-id="{{ task.id }}" data-emoji="🙇‍♀️">🙇‍♀️</button>
-                        </div>
+                            <!-- スタンプ一覧 -->
+                            <div class="reaction-list" style="display: none; position: absolute; top: -60px; left: 0; background: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 5px; z-index: 10;">
+                                <button type="button" class="reaction-item" data-task-id="{{ task.id }}" data-emoji="👍">👍</button>
+                                <button type="button" class="reaction-item" data-task-id="{{ task.id }}" data-emoji="💖">💖</button>
+                                <button type="button" class="reaction-item" data-task-id="{{ task.id }}" data-emoji="👏">👏</button>
+                                <button type="button" class="reaction-item" data-task-id="{{ task.id }}" data-emoji="🙇‍♀️">🙇‍♀️</button>
+                            </div>
 
-                        <!-- リアクション表示-->
-                        <div class="reaction-display mt-2">
-                            {% for reaction in task.reactions %}
-                            <span>{{ reaction.emoji }} {{ reaction.count }}</span>
-                            {% endfor %}
+                            <!-- リアクション表示-->
+                            <div class="reaction-display mt-2">
+                                {% for reaction in task.reactions %}
+                                <span>{{ reaction.emoji }} {{ reaction.count }}</span>
+                                {% endfor %}
+                            </div>
                         </div>
-                    </div>
-                </div>        
+                    </div>        
                     
                     <!-- コメントリスト -->
                     <div class="comments-section">
                         <div class="comments-list" id="comments-list-{{ task.id }}">
-                            {% for comment in task.comments.all %}
+                            {% for comment in task.task_comments.all %}
                                 <div class="comment-box border p-3 mb-2 rounded d-flex align-items-center" id="comment-{{ comment.id }}">
-                                    <img src="{{ comment.user.profile_image.url|default:'/media/profile_images/default_profile_image.png' }}"
+                                    <img src="{% if comment.user.profile_image %}{{ comment.user.profile_image.url }}{% else %}/media/default_profile_image.png{% endif %}"
                                         alt="avatar" 
                                         class="rounded-circle mr-2" 
                                         style="width: 40px; height: 40px;">
                                     <div>
-                                        <strong>{{ comment.user.username }}</strong>
-                                        <p class="mb-1">{{ comment.content }}</p>
+                                        <strong>{{ comment.user.name }}</strong>
+                                        <p class="mb-1">{{ comment.comment }}</p>
                                     </div>
                                     {% if comment.user == request.user %}
                                         <button class="delete-comment-btn btn btn-sm btn-danger ml-auto" data-comment-id="{{ comment.id }}">
@@ -115,6 +115,7 @@
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
+                </div>
             {% endfor %}
         {% else %}
             <p>現在、タスクがありません。新しいタスクを追加してください。</p>
