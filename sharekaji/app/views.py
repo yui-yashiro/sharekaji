@@ -289,9 +289,7 @@ class TaskAnalysisView(View):
     def get(self, request):
         if not request.user.is_authenticated:
             return redirect('login')
-        if not request.user.family_id:
-            return redirect('home')
-        
+
         # 家族グループのリストを取得
         family_members = request.user.family_id.members.all()
 
@@ -301,32 +299,27 @@ class TaskAnalysisView(View):
             completion_status=True,
             completion_datetime__gte=timezone.now() - timedelta(days=7)
         ).values('user__name').annotate(task_count=Count('id'))
-        
+
         # 未完了タスクを家族ごとに集計
         incomplete_tasks = Task.objects.filter(
             user__in=family_members,
             completion_status=False,
         ).values('user__name').annotate(task_count=Count('id'))
 
-        # タスク数の合計を計算
-        total_completed = sum(task['task_count']for task in completed_tasks)
-        total_incomplete = sum(task['task_count']for task in incomplete_tasks)
-        
-        # パーセンテージに変換したデータを作成
-        completed_data = [(task['task_count'] / total_completed) * 100 if total_completed > 0 else 0 for task in completed_tasks]
-        completed_labels = [task['user__name']for task in completed_tasks]
-
-        incomplete_data = [(task['task_count'] / total_incomplete) * 100 if total_incomplete > 0 else 0 for task in incomplete_tasks]
-        incomplete_labels = [task['user__name']for task in incomplete_tasks]
+        # ラベルとデータを作成
+        completed_labels = [task['user__name'] for task in completed_tasks]
+        completed_data = [task['task_count'] for task in completed_tasks]
+        incomplete_labels = [task['user__name'] for task in incomplete_tasks]
+        incomplete_data = [task['task_count'] for task in incomplete_tasks]
 
         # コンテキストにデータを渡す
         context = {
+            'completed_labels': completed_labels,
             'completed_data': completed_data,
-            'completed_labels':completed_labels,
-            'incomplete_data': incomplete_data,
             'incomplete_labels': incomplete_labels,
+            'incomplete_data': incomplete_data,
         }
-        return render(request, 'tasks/task_analysis.html',context)
+        return render(request, 'tasks/task_analysis.html', context)
 
 class MyPageView(LoginRequiredMixin, View):
     def get(self, request):
@@ -649,7 +642,12 @@ def update_task_progress(request, task_id):
     if request.method == 'POST':
         form = ProgressForm(request.POST, instance=task)
         if form.is_valid():
-            form.save()
+            task = form.save(commit=False)
+            if task.completion_status:
+                task.completion_datetime = timezone.now()
+            else:
+                task.completion_datetime = None
+            task.save()
             messages.success(request, '進捗が更新されました')
             return redirect('today_tasks')
     else:

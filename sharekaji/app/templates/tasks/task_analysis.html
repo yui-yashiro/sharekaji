@@ -1,106 +1,40 @@
 {% extends 'tasks/base.html' %}
+{% load static %}
 
 {% block title %}家事分析{% endblock %}
 
 {% block content %}
 <div class="container">
     <h4 class="page-title"><strong>家事分析</strong></h4>
-    <div>
-        <button onclick="showChart('completed')">完了</button>
-        <button onclick="showChart('incomplete')">未完了</button>
-    </div>
+    <button class="toggle-btn" data-target="completed">完了</button>
+    <button class="toggle-btn" data-target="incompleted">未完了</button>
 
-    <div id="completedContainer">
-        <h3>直近１週間-完了タスク</h3>
+    <!-- 完了タスクグラフ -->
+    <div data-container="completed">
+        <h3>直近1週間 - 完了タスク</h3>
         <canvas id="completedChart" width="400" height="400"></canvas>
     </div>
 
-    <div id="incompleteContainer" class='hidden'>
-        <h3>直近１週間-未完了タスク</h3>
-        <canvas id="incompleteChart" width="400" height="400"></canvas>
+    <!-- 未完了タスクグラフ -->
+    <div data-container="incompleted" style="display:none;">
+        <h3>直近1週間 - 未完了タスク</h3>
+        <canvas id="incompletedChart" width="400" height="400"></canvas>
     </div>
+</div>
+<script>
+    // Djangoから渡されたデータをスクリプトで直接埋め込む
+    const completedLabels = {{ completed_labels|safe }};
+    const completedData = {{ completed_data|safe }};
+    const incompleteLabels = {{ incomplete_labels|safe }};
+    const incompleteData = {{ incomplete_data|safe }};
+</script>
+{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/task_analysis.css' %}">
 {% endblock %}
 
 {% block javascript %}
-    <script>
-        var completedLabels = {{ completed_labels|safe }};
-        var completedData = {{ completed_data|safe }};
-        var incompleteLabels = {{ incomplete_labels|safe }};
-        var incompleteData = {{ incomplete_data|safe }};
-
-        var ctx = document.getElementById('completedChart').getContext('2d');
-        var completedChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: completedLabels,
-                datasets: [{
-                    data: completedData,
-                    backgroundColor: ['#4BC0C0', '#FF6384', '#36A2EB'],
-                    borderColor: ['#4BC0C0', '#FF6384', '#36A2EB'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    tooltip:{
-                        callbacks:{
-                            label:function(context){
-                                var label = context.label || '';
-                                var value = context.raw || 0;
-                                return label + ':' + value.toFixed(2) + '%';
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        var incompletectx = document.getElementById('incompleteChart').getContext('2d');
-        var incompleteChart = new Chart(incompletectx, {
-            type: 'doughnut',
-            data: {
-                labels: incompleteLabels,
-                datasets: [{
-                    data: incompleteData,
-                    backgroundColor: ['#4BC0C0', '#FF6384', '#36A2EB'],
-                    borderColor: ['#4BC0C0', '#FF6384', '#36A2EB'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    tooltip:{
-                        callbacks:{
-                            label:function(context){
-                                var label = context.label || '';
-                                var value = context.raw || 0;
-                                return label + ':' + value.toFixed(2) + '%';
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        function showChart(type){
-            var completedContainer = document.getElementById('completedContainer');
-            var incompleteContainer = document.getElementById('incompleteContainer');
-
-            if(type === 'completed'){
-                completedContainer.classList.remove('hidden');
-                incompleteContainer.classList.add('hidden');
-            }else{
-                completedContainer.classList.add('hidden');
-                incompleteContainer.classList.remove('hidden');
-            }
-        }
-    </script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/task_analysis.js' %}"></script>
 {% endblock %}

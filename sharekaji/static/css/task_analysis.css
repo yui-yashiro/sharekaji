@@ -1,0 +1,20 @@
+/* タスク分析ボタンスタイル */
+.toggle-btn {
+    padding: 10px 20px;
+    margin: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #4BC0C0;
+    color: white;
+}
+
+.toggle-btn:hover {
+    background-color: #36A2EB;
+}
+
+/* グラフコンテナ */
+[data-container="completed"], [data-container="incomplete"] {
+    text-align: center;
+    margin-top: 20px;
+}
