@@ -70,8 +70,25 @@ class HomeView(View):
     def get(self, request, year=None, month=None):
         if not request.user.is_authenticated:
             return redirect('login') 
-        
+        # 現在時刻を定義
         now = timezone.now()
+
+        # 完了期限2時間前を切った未完了タスク通知の作成
+        reminders = Task.objects.filter(
+            user=request.user,
+            completion_status=False,
+            due_datetime__lte=now + timedelta(hours=2),
+            due_datetime__gt=now
+        )
+
+        # タスク完了通知の作成
+        family_notifications = Task.objects.filter(
+            user__family_id=request.user.family_id,
+            completion_status=True,
+            completion_datetime__gte=timezone.now() - timedelta(days=1)
+        ).exclude(user=request.user)
+        
+        # 年月の設定（カレンダー表示用）
         if year is None or month is None:
             year = now.year
             month = now.month
@@ -86,13 +103,26 @@ class HomeView(View):
             for task in tasks
         ]
 
+        # 未完了タスクを取得
+        incomplete_tasks = Task.objects.filter(
+            user=request.user,
+            completion_status=False
+        )
+
         # 完了したタスクを取得
-        completed_tasks = Task.objects.filter(completion_status=True, user__family_id=request.user.family_id).exclude(user=request.user)
+        completed_tasks = Task.objects.filter(
+            completion_status=True,
+            user__family_id=request.user.family_id,
+            completion_datetime__isnull=False
+            )
 
         context = {
             "event_data": event_data,
             "tasks": tasks,
-            "completed_tasks": completed_tasks
+            "reminders": reminders,
+            "family_notifications": family_notifications,
+            "incomplete_tasks": incomplete_tasks,
+            "completed_tasks": completed_tasks,
         }
         return render(request, 'tasks/home.html', context)
 

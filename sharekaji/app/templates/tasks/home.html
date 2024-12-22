@@ -18,17 +18,20 @@
     </div>
 
     <div class="container mt-4">
-    {% if family_notifications %}
-    <div class="alert alert-success">
-        <h5>{{ notification.task_name }} さんが以下の家事タスクを完了しました！感謝の気持ちを伝えましょう！</h5>
-        <ul>
-            {% for notification in family_notifications %}
-            <li>{{ notification.task_name }} ({{ notification.completion_datetime|date:"M-d H:i" }} に完了</li>
-            {% endfor %}
-        </ul>
+        {% if family_notifications %}
+        <div class="alert alert-success">
+            <h5>以下の家事タスクが完了しました！感謝の気持ちを伝えましょう！</h5>
+            <ul>
+                {% for notification in family_notifications %}
+                <li>
+                    {{ notification.task_name }} 
+                    (完了日: {{ notification.completion_datetime|date:"Y年m月d日 H:i" }})
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
-</div>
 
     <!-- カレンダー部分 -->
     <div class="container mt-4 calendar-container">
