@@ -233,8 +233,9 @@ class RecurringTaskCreateView(CreateView):
         current_date = recurrence.start_date
         while current_date <= recurrence.end_date:
             if self.is_task_date(current_date, recurrence):
+                # タスクを作成
                 task = Task.objects.create(
-                    user=recurrence.user,
+                    user=form.instance.user,
                     task_name=recurrence.task_name,
                     scheduled_datetime=timezone.make_aware(datetime.combine(current_date, recurrence.due_time)),
                     due_datetime=timezone.make_aware(datetime.combine(current_date, recurrence.due_time)),
@@ -242,19 +243,37 @@ class RecurringTaskCreateView(CreateView):
                     recurrence=recurrence  # 親タスク（周期タスク）を参照
                 )
                 print(f"タスク作成: {task.task_name} on {task.scheduled_datetime}")
+                
+                # 次回の担当者を設定
+                form.instance.user = self.get_next_user(form.instance.user)
             current_date += timedelta(days=1)
 
         return super().form_valid(form)
 
     def get_auto_assigned_user(self):
-        last_task = Task.objects.filter(recurrence__isnull=False).order_by('-scheduled_datetime').first()
-        if last_task is None:
-            default_user = User.objects.filter(family_id=self.request.user.family_id).first() or self.request.user
-            return default_user
+        # 最初のタスクを割り当てる際に、最もタスク数が少ない家族メンバーを選ぶ
+        # 家族全員を取得
+        family_members = User.objects.filter(family_id=self.request.user.family_id)
 
-        last_assigned_user = last_task.user
-        family_members = User.objects.filter(family_id=self.request.user.family_id).exclude(id=last_assigned_user.id)
-        return family_members.first() if family_members.exists() else last_assigned_user
+        # 各メンバーのタスク数を計算
+        task_counts = family_members.annotate(task_count=Count('task'))
+
+        # タスク数が最も少ないメンバーを選択
+        least_task_user = task_counts.order_by('task_count').first()
+
+        # 家族がいない場合は入力者をデフォルトで返す
+        return least_task_user or self.request.user
+
+    def get_next_user(self, current_user):
+        # 現在の担当者の次にタスクを担当するユーザーを取得（家族メンバー間で順番に回す）
+        # 家族メンバーを取得
+        family_members = User.objects.filter(family_id=self.request.user.family_id).order_by('id')
+
+        # 現在の担当者の次のユーザーを取得
+        current_index = list(family_members).index(current_user)
+        next_index = (current_index + 1) % len(family_members)
+
+        return family_members[next_index]
 
     def is_task_date(self, date, recurrence):
         if recurrence.recurrence_type == 1:  # 毎日
@@ -273,7 +292,7 @@ class RecurringTaskCreateView(CreateView):
             context['family_members'] = []
 
         # 1日から31日までの値をテンプレートに渡す
-        context['day_range'] = range(1,31 + 1)
+        context['day_range'] = range(1, 31 + 1)
 
         return context
     
