@@ -7,7 +7,7 @@ from django.contrib.auth import authenticate, login, logout, update_session_auth
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render, reverse
 from django.urls import reverse_lazy
@@ -303,7 +303,21 @@ class Individual_TaskCreateView(CreateView):
     success_url = reverse_lazy('today_tasks')
 
     def form_valid(self, form):
-        form.instance.user = self.request.user
+         # 家族メンバーを取得
+        family_members = User.objects.filter(family_id=self.request.user.family_id)
+
+        if not form.cleaned_data.get('user'):  # 担当者が未設定の場合
+            # 各家族メンバーの未完了タスク数を取得
+            members_with_task_count = family_members.annotate(
+                incomplete_task_count=Count('task', filter=Q(task__completion_status=False))
+            ).order_by('incomplete_task_count')
+
+            # タスク数が最も少ないメンバーを割り当て
+            assigned_user = members_with_task_count.first()
+            form.instance.user = assigned_user
+            print(f"自動割り当てされた担当者: {assigned_user}")
+        else:  
+            form.instance.user = self.request.user
         
         # `scheduled_datetime` を現在の日時として設定し、タイムゾーン情報を追加
         form.instance.scheduled_datetime = timezone.make_aware(
