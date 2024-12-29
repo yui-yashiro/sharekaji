@@ -97,7 +97,7 @@ class HomeView(View):
         tasks = Task.objects.filter(user=request.user)
         event_data = [
             {
-                "title": task.task_name,
+                "title": f"{task.task_name}（{timezone.localtime(task.due_datetime).strftime('%H:%M')}）" if task.due_datetime else task.task_name,
                 "start": timezone.localtime(task.due_datetime).isoformat() if task.due_datetime else None
             }
             for task in tasks

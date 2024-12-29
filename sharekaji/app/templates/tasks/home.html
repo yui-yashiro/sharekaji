@@ -44,7 +44,7 @@
         {% if incomplete_tasks %}
             <ul>
                 {% for task in incomplete_tasks %}
-                <li>{{ task.task_name }} (完了期限: {{ task.due_datetime|date:"Y-m-d H:i" }})</li>
+                <li>{{ task.task_name }} (完了期限: {{ task.due_datetime|date:"Y年m月d日 H時i分" }})</li>
                 {% endfor %}
             </ul>
         {% else %}
@@ -54,15 +54,15 @@
 
     <!-- 最近行った家事セクション -->
     <div class="container mt-4">
-        <h5><strong>まだ終わっていない家事</strong></h5>
+        <h5><strong>最近行った家事</strong></h5>
         {% if completed_tasks %}
             <ul>
                 {% for task in completed_tasks %}
-                <li>{{ task.task_name }} (完了日: {{ task.completion_datetime|date:"Y-m-d H:i" }})</li>
+                <li>{{ task.task_name }} (完了日: {{ task.completion_datetime|date:"Y年m月d日" }})</li>
                 {% endfor %}
             </ul>
         {% else %}
-            <p>最近完了した家事はありません。</p>
+            <p>最近行った家事はありません。</p>
         {% endif %}
     </div>
 {% endblock %}
