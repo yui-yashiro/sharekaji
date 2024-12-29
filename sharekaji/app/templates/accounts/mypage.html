@@ -2,30 +2,27 @@
 
 {% block title %}マイページ{% endblock %}
 
-{% block head%}
-     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
+{% block head %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/mypage.css' %}">
+    <script defer src="{% static 'js/mypage.js' %}"></script>
 {% endblock %}
 
 {% block content %}
 <div class="container">
     <h4 class="page-title"><strong>マイページ</strong></h4>
 
-    <form method="post" enctype="multipart/form-data" action="{% url 'mypage' %}">
-        {% csrf_token%}
-        <div style="position: relative; margin-bottom: 20px;">
+    <!-- プロフィール画像アップロード部分 -->
+    <form method="post" enctype="multipart/form-data" action="{% url 'mypage' %}" id="profile-image-form">
+        {% csrf_token %}
+        <div class="profile-container">
             {% if user.profile_image %}
-                <img id="profile-image" src="{{ user.profile_image.url }}" alt="プロフィール画像"  style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 2px solid #ccc;">
+                <img id="profile-image" src="{{ user.profile_image.url }}" alt="プロフィール画像">
             {% else %}
-                <img id="profile-image" src="{% get_media_prefix %}default_profile_image.png" alt="プロフィール画像"  style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 2px solid #ccc;">
+                <img id="profile-image" src="{% get_media_prefix %}default_profile_image.png" alt="プロフィール画像">
             {% endif %}
-            <div class="image-upload-label">
-                <label for="image_upload" class="plus-icon-label">
-                    <span class="upload-text">+画像を登録</span>
-                </label>
-                <input type="file" id="image_upload" name="profile_image" style="display: none;" onchange="previewImage(event)">
-            </div>
-            <button type="submit" class="upload-button">アップロードする</button>
+            <button type="button" class="upload-button" onclick="triggerFileInput()">+画像を登録する</button>
+            <input type="file" id="image_upload" name="profile_image" style="display: none;" onchange="submitForm()">
         </div>
     </form>
 
@@ -33,7 +30,7 @@
     <div class="container">
         <div class="row mb-3 align-items-center">
             <div class="col-md-3">
-                <h5>名前/ニックネーム：{{ user.name }}</h5> 
+                <h5><span class="title">名前/ニックネーム：</span>{{ user.name }}</h5>
             </div>
             <div class="col-md-8">
                 <a href="{% url 'account_edit' %}">アカウント情報変更</a>
@@ -42,43 +39,44 @@
 
         <div class="row mb-3 align-items-center">
             <div class="col-md-3">
-                <h5>家族名：{{ family.name|default:"家族名が設定されていません" }}</h5>
+                <h5><span class="title">家族名：</span>{{ family.name|default:"家族名が設定されていません" }}</h5>
             </div>
             <div class="col-md-8">
-            <a href="{% url 'family_edit' %}">家族情報編集</a>
+                <a href="{% url 'family_edit' %}">家族情報編集</a>
             </div>
         </div>
+
         <div class="row mb-3 align-items-center">
             <div class="col-md-3">
-                <h5>続柄：{{ user.family_relationship|default:"続柄が設定されていません" }}</h5>
+                <h5><span class="title">続柄：</span>{{ user.family_relationship|default:"続柄が設定されていません" }}</h5>
             </div>
             <div class="col-md-8">
-                <a href="{% url 'account_delete' %}">アカウント削除</a> 
+                <a href="{% url 'account_delete' %}">アカウント削除</a>
             </div>
         </div>
     </div>
 
     <!-- 家族一覧 -->
     <div class="my-5">
-        <h4>家族一覧</h4>
+        <h5><strong>家族一覧</strong></h5>
         <ul class="list-group">
             {% for member in family_members %}
             <li class="list-group-item">
                 {% if member.profile_image %}
-                    <img src="{{ member.profile_image.url }}" alt="{{ member.name }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #ccc;">
+                    <img src="{{ member.profile_image.url }}" alt="{{ member.name }}">
                 {% else %}
-                    <img src="{% get_media_prefix %}default_profile_image.png" alt="{{ member.name }}"  style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #ccc;">
+                    <img src="{% get_media_prefix %}default_profile_image.png" alt="{{ member.name }}">
                 {% endif %}
-                {{ member.name }}（{{ member.family_relationship|default:"続柄が設定されていません"  }}）
+                {{ member.name }}（{{ member.family_relationship|default:"続柄が設定されていません" }})
             </li>
             {% endfor %}
         </ul>
     </div>
 
     <!-- 招待リンクとログアウト -->
-    <div class="my-4">
-        <a href="{% url 'family_invite_url' %}" class="btn btn-primary">家族を招待</a>
-        <a href="{% url 'login' %}" class="btn btn-secondary ml-3">ログアウト</a>
+    <div class="invite-logout-container">
+        <a href="{% url 'family_invite_url' %}" class="btn btn-primary invite-button">家族を招待</a>
+        <a href="{% url 'login' %}" class="logout-button">ログアウト</a>
     </div>
 </div>
 {% endblock %}

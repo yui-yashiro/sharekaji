@@ -1,0 +1,85 @@
+/* ページタイトル */
+.page-title {
+    margin-bottom: 20px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* プロフィール部分 */
+.profile-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.profile-container img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ccc;
+}
+
+.profile-container .upload-button {
+    padding: 5px 10px;
+    background-color: #8e8e91;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    align-self: center;
+    margin-top: 120px; 
+}
+
+.profile-container .upload-button:hover {
+    background-color: #0056b3;
+}
+
+.title {
+    font-weight: bold;
+    color: #333;
+}
+
+/* 家族一覧 */
+.my-5 ul.list-group {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #080808;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+.list-group-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.list-group-item img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ccc;
+}
+
+/* 招待リンクとログアウトのボタンを縦方向に配置 */
+.invite-logout-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+/* ボタンのデザイン調整 */
+.invite-button,
+.logout-button {
+    width: 100px;
+    padding: 8px;
+    font-size: 14px;
+    text-align: center;
+}
