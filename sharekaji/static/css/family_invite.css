@@ -1,0 +1,54 @@
+/* 家族招待URL画面のスタイル */
+.family-invite-page .title {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #000;
+}
+
+.family-invite-page .container {
+    width: 80%;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.family-invite-page .instructions {
+    padding: 10px;
+    border: 1px solid #333;
+    margin-bottom: 20px;
+    background-color: #f9f9f9; 
+    border-radius: 5px; 
+}
+
+.family-invite-page .action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.family-invite-page #generate-url-btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.family-invite-page #invite-url {
+    padding: 10px;
+    border: 1px solid #ccc;
+    width: 60%;
+    display: none;
+    text-align: center;
+}
+
+.family-invite-page .back-link {
+    display: block;
+    margin-top: 20px;
+    text-align: center;
+}

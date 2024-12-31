@@ -4,41 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>家族招待ＵＲＬ画面</title>
-    <link rel="stylesheet" href="/static/css/layout.css">
+    <link rel="stylesheet" href="/static/css/family_invite.css">
 </head>
-<body class="family-invite-page">
-    <div class="container">
-        <h3>家族招待ＵＲＬ画面</h3>
+<body>
+    <h2 class="title">シェアカジ</h2>
+    <div class="family-invite-page">
+        <div class="container">
+            <h3>家族招待ＵＲＬ画面</h3>
 
-        <div class="instructions">
-            <p>利用方法</p>
-            <p>作成するをクリックし、リンク先URLを表示</p>
-            <p>招待したい家族にリンク先を共有し、アカウントを登録してもらう</p>
-            <p>※発行されたURLは一度利用すると失効します。</p>
-        </div>
-
-        <div class="action">
-            <button id="generate-url-btn">家族招待URLを作成する</button>
-            <div id="invite-url">
-                <a href="#" id="generated-url" target="_blank"></a>
+            <div class="instructions">
+                <p>利用方法</p>
+                <p>作成するをクリックし、リンク先URLを表示</p>
+                <p>招待したい家族にリンク先を共有し、アカウントを登録してもらう</p>
+                <p>※発行されたURLは一度利用すると失効します。</p>
             </div>
-        </div>
 
-        <a href="/mypage/">マイページへ戻る</a>
+            <div class="action">
+                <button id="generate-url-btn">家族招待URLを作成する</button>
+                <div id="invite-url">
+                    <a href="#" id="generated-url" target="_blank"></a>
+                </div>
+            </div>
+
+            <a href="/mypage/" class="back-link">マイページへ戻る</a>
+        </div>
     </div>
 
-    <script>
-        document.getElementById("generate-url-btn").addEventListener("click", function () {
-            fetch("/generate-invite-url/")
-                .then(response => response.json())
-                .then(data => {
-                    const urlElement = document.getElementById("generated-url");
-                    urlElement.href = data.url;
-                    urlElement.textContent = data.url;
-                    document.getElementById("invite-url").style.display = "block";
-                })
-                .catch(error => console.error("Error generating URL:", error));
-        });
-    </script>
+    <script src="/static/js/family_invite.js"></script>
 </body>
 </html>
