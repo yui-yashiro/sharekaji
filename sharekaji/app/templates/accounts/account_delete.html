@@ -5,20 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>新規アカウント削除</title>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/layout.css' %}">
+    <link rel="stylesheet" href="{% static 'css/account.css' %}">
 </head>
 <body>
     <h2 class="title">シェアカジ</h2>
     <div class="account-delete-container">
-        <h3><strong>アカウント削除の確認</strong></h3>
-
         {% if has_incomplete_tasks %}
             <!-- 未完了タスクがある場合の警告メッセージ -->
             <div class="warning">
                 ⚠️ 未完了のタスクが存在しています。タスクを完了させるか、他のメンバーに割り当て直してください。
             </div>
         {% endif %}
-        
+        <h3><strong>アカウント削除の確認</strong></h3>
         <p>アカウントを削除する前に、以下のフォームにパスワードを入力してください。</p>
         
         <form id="deleteForm" method="post" action="{% url 'account_delete' %}">
@@ -37,39 +35,39 @@
     </div>
     
     <!-- 背景の暗幕 -->
-<div class="modal-overlay" onclick="closePopup()" id="modalOverlay"></div>
+    <div class="modal-overlay" onclick="closePopup()" id="modalOverlay"></div>
 
-<!-- 削除確認ポップアップ -->
-<div id="confirmBox" class="account-delete-confirm-box">
-    <p>アカウントを削除してもよろしいですか？</p>
-    <button onclick="submitForm()" class="ok-button">OK</button>
-    <button onclick="closePopup()" class="cancel-button">キャンセル</button>
-</div>
+    <!-- 削除確認ポップアップ -->
+    <div id="confirmBox" class="account-delete-confirm-box">
+        <p>アカウントを削除してもよろしいですか？</p>
+        <button onclick="submitForm()" class="ok-button">OK</button>
+        <button onclick="closePopup()" class="cancel-button">キャンセル</button>
+    </div>
 
-<script>
-function confirmDeletion() {
-    const passwordField = document.getElementById('password');
-    if (passwordField.value === "") {
-        alert("パスワードを入力してください。");
-        return;
+    <script>
+    function confirmDeletion() {
+        const passwordField = document.getElementById('password');
+        if (passwordField.value === "") {
+            alert("パスワードを入力してください。");
+            return;
+        }
+
+        // ポップアップと暗幕を表示
+        document.getElementById('modalOverlay').style.display = 'block';
+        document.getElementById('confirmBox').style.display = 'block';
     }
 
-    // ポップアップと暗幕を表示
-    document.getElementById('modalOverlay').style.display = 'block';
-    document.getElementById('confirmBox').style.display = 'block';
-}
+    function closePopup() {
+        // ポップアップと暗幕を非表示にする
+        document.getElementById('modalOverlay').style.display = 'none';
+        document.getElementById('confirmBox').style.display = 'none';
+    }
 
-function closePopup() {
-    // ポップアップと暗幕を非表示にする
-    document.getElementById('modalOverlay').style.display = 'none';
-    document.getElementById('confirmBox').style.display = 'none';
-}
-
-function submitForm() {
-    // confirm フィールドを true に設定して送信
-    document.getElementById('confirmInput').value = 'true';
-    document.getElementById('deleteForm').submit();
-}
-</script>
+    function submitForm() {
+        // confirm フィールドを true に設定して送信
+        document.getElementById('confirmInput').value = 'true';
+        document.getElementById('deleteForm').submit();
+    }
+    </script>
 </body>
 </html>
