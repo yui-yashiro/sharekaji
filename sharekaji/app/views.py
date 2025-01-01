@@ -141,17 +141,15 @@ class TodayTasksView(LoginRequiredMixin, View):
         ).prefetch_related('task_comments__user')
 
         # タスクごとのリアクションを集計
-        tasks_with_reactions = []
         for task in tasks:
             reactions = Reaction.objects.filter(task=task).values('reaction_type').annotate(count=Count('reaction_type'))
-            reaction_data = [
+            task.reactions_data = [
                 {
                     "emoji": dict(Reaction.REACTION_TYPES).get(reaction["reaction_type"], "❓"),
                     "count": reaction["count"],
                 }
                 for reaction in reactions
             ]
-            tasks_with_reactions.append({"task": task, "reactions": reaction_data})
 
         # 取得したタスクの日時をローカルタイムに変換
         for task in tasks:

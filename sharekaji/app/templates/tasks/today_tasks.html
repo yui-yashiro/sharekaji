@@ -3,8 +3,9 @@
 
 {% block title %}本日のタスク一覧{% endblock %}
 
-{% block modal_css %}
-<link rel="stylesheet" href="{% static 'css/modal.css' %}">
+{% block head %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/task.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -15,7 +16,7 @@
         {% if messages %}
         <div class="messages">
             {% for message in messages %}
-            <div class="alert {{ message.tags }}" style="color: red; font-weight: bold;">{{ message }}</div>
+            <div class="alert {{ message.tags }}">{{ message }}</div>
             {% endfor %}
         </div>
         {% endif %}
@@ -23,15 +24,15 @@
         <!-- アクセスした日の日付を表示 -->
         <h3 class="text-center"> {{ current_date|date:"Y年 F j日" }}（{{ current_date|date:"l" }}）</h3>
         <!-- 「個別タスクを追加する」ボタンは常時表示 -->
-        <div class="d-flex justify-content-end">
-            <a href="{% url 'add_individual_tasks' %}" class="btn btn-success add-task-button">＋個別タスクを追加する</a>
+        <div class="d-flex justify-content-end mb-3">
+            <a href="{% url 'add_individual_tasks' %}" class="add-task-button">＋個別タスクを追加する</a>
         </div>
 
         <!-- タスクが存在する場合の表示 -->
         {% if tasks %}
             {% for task in tasks %}
                 <div class="task-box">
-                    <div class="task-header-box p-3 mb-3 border rounded">
+                    <div class="task-header-box p-3 border rounded">
                         <div class="task-details">
                             <p><strong>家事内容：</strong> {{ task.task_name }}</p>
                             <p><strong>担当者：</strong> {{ task.user.name }}</p>
@@ -47,7 +48,7 @@
                         </div>
                     </div>
                     
-                    <div class="task-progress-box p-3 mb-3 border rounded">
+                    <div class="task-progress-box p-3 border rounded">
                         <div class="row">
                             <div class="col-md-6">
                                 <p><strong>ステータス：</strong>
@@ -65,11 +66,11 @@
 
                         <div class="reaction-container d-flex align-items-center" style="position: relative;">
                             <button type="button" class="btn btn-light reaction-btn">
-                                <i class="fas fa-heart" style="color: gray; font-size: 20px;"></i>
+                                <i class="fas fa-heart"></i>
                             </button>
 
                             <!-- スタンプ一覧 -->
-                            <div class="reaction-list" style="display: none; position: absolute; top: -60px; left: 0; background: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 5px; z-index: 10;">
+                            <div class="reaction-list">
                                 <button type="button" class="reaction-item" data-task-id="{{ task.id }}" data-emoji="👍">👍</button>
                                 <button type="button" class="reaction-item" data-task-id="{{ task.id }}" data-emoji="💖">💖</button>
                                 <button type="button" class="reaction-item" data-task-id="{{ task.id }}" data-emoji="👏">👏</button>
@@ -77,9 +78,9 @@
                             </div>
 
                             <!-- リアクション表示-->
-                            <div class="reaction-display mt-2">
-                                {% for reaction in task.reactions %}
-                                <span>{{ reaction.emoji }} {{ reaction.count }}</span>
+                            <div class="reaction-display">
+                                {% for reaction in task.reactions_data %}
+                                    <span>{{ reaction.emoji }} {{ reaction.count }}</span>
                                 {% endfor %}
                             </div>
                         </div>
@@ -95,7 +96,7 @@
                                         class="rounded-circle mr-2" 
                                         style="width: 40px; height: 40px;">
                                     <div>
-                                        <strong>{{ comment.user.name }}</strong>
+                                        <strong>{{ comment.user.name }}</strong> <span class="text-muted" style="font-size: 0.9em;">{{ comment.created_at|date:"Y/m/d H:i" }}</span>
                                         <p class="mb-1">{{ comment.comment }}</p>
                                     </div>
                                     {% if comment.user == request.user %}
@@ -111,7 +112,7 @@
                     <!-- コメントを入力するバー -->
                     <div class="comment-bar">
                         <input type="text" name="comment" id="comment-input-{{ task.id }}" class="form-control" placeholder="コメントを入力してください...">
-                        <button type="button" class="btn btn-primary mt-2 send-comment-btn" data-task-id="{{ task.id }}">
+                        <button type="button" class="btn btn-primary send-comment-btn" data-task-id="{{ task.id }}">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>

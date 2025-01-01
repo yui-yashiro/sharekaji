@@ -1,0 +1,98 @@
+/* メッセージ表示 */
+.alert {
+    color: red;
+    font-weight: bold;
+}
+
+/* リアクションボタン */
+.fas.fa-heart {
+    color: gray;
+    font-size: 20px;
+}
+
+/* リアクションリスト */
+.reaction-list {
+    display: none;
+    position: absolute;
+    top: -60px;
+    left: 0;
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 10;
+}
+
+/* リアクションスタンプの表示 */
+.reaction-display span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    background-color: white;
+    color: black;
+    border-radius: 8px;
+    border: 2px solid gray;
+    font-size: 14px;
+    margin-right: 10px;
+}
+
+/* タスク追加ボタン */
+.add-task-button{
+    display: flex;
+    align-items: center;
+    height: 35px;
+    padding: 0 20px;
+    background-color: #65b0f7;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* コメントボックスのスタイル */
+.comment-box {
+    position: relative;
+}
+
+/* 削除ボタンのデザイン */
+.delete-comment-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: transparent;
+    color: gray;
+    border: none;
+    cursor: pointer;
+}
+
+/* コメント入力バーと送信ボタンを横並びに配置 */
+.comment-bar {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+/* コメント入力バーの入力欄スタイル */
+.comment-bar input {
+    flex-grow: 1;
+    height: 40px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* コメント送信ボタンのスタイル */
+.comment-bar button {
+    height: 40px;
+    padding: 0 12px;
+    background-color: #65b0f7;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.comment-bar button i {
+    font-size: 16px;
+}
