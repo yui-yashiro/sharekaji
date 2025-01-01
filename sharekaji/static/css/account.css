@@ -1,0 +1,57 @@
+/* アカウント登録画面 */
+.auth-page .container-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* 画面全体の高さに対して中央に配置 */
+}
+
+.auth-page .center-content {
+    text-align: center;
+    border: 1px solid #ccc;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+    max-width: 400px;
+    width: 100%;
+    margin: 20px auto;
+}
+/* 新規登録入力フォームの余白 */
+.auth-page .form-group {
+    margin-bottom: 15px; /* フォーム要素間の間隔を追加 */
+}
+
+/* 新規登録リンクの間隔を広げる */
+.auth-page button[type="submit"] {
+    margin-bottom: 10px; /* ログインボタンの下に余白を追加 */
+}
+
+.auth-page a {
+    display: block;
+    margin-top: 10px; /* 新規登録リンクの上に余白を追加 */
+}
+
+/* 全体の高さ設定 */
+html, body {
+    height: 100%;
+}
+
+
+/* エラーメッセージをまとめて赤くする設定 */
+.error-message {
+    color: red;
+    font-weight: bold; /* 太字にする */
+    margin-top: 10px; /* 少し上に余白をつける */
+}
+
+/* エラーメッセージのリスト（項目の集まり）の設定 */
+.error-message ul {
+    list-style: none; /* 黒い点や番号を消す */
+    padding: 0; /* リストの周りの空白をなくす */
+}
+
+.error-message li {
+    color: red; /* リストの中の文字を赤くする */
+    font-weight: bold; /* リストの中の文字を太字にする */
+}
