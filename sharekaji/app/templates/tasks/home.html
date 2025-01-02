@@ -2,31 +2,35 @@
 
 {% block title %}ホーム{% endblock %}
 
+{% block head %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
 {% block content %}
     <!-- リマインドセクション -->
-    <div class="container mt-4">
+    <div class="container">
         {% if reminders %}
-        <div class="alert alert-warning">
-            <h5>リマインド（完了まであと2時間）</h5>
+        <div class="reminder-section">
+            <h5 class="reminder-title">リマインド（完了まであと2時間）</h5>
             <ul>
                 {% for reminder in reminders %}
-                <li>{{ reminder.task_name }} ({{ reminder.due_datetime|date:"Y-m-d H:i" }} までに完了)</li>
+                <li class="reminder-task">{{ reminder.task_name }} ({{ reminder.due_datetime|date:"m月d日 H時i分" }} までに完了)</li>
                 {% endfor %}
             </ul>
         </div>
         {% endif %}
     </div>
 
-    <div class="container mt-4">
+    <div class="container">
         {% if family_notifications %}
-        <div class="alert alert-success">
-            <h5>以下の家事タスクが完了しました！感謝の気持ちを伝えましょう！</h5>
+        <div class="notification-success">
+            <h5 class="success-title">
+                 {{ family_notifications.0.user.name }}さんが以下の家事タスクを完了しました！感謝の気持ちを伝えましょう！
+            </h5>
             <ul>
                 {% for notification in family_notifications %}
-                <li>
-                    {{ notification.task_name }} 
-                    (完了日: {{ notification.completion_datetime|date:"Y年m月d日 H:i" }})
-                </li>
+                <li class="success-task">{{ notification.task_name }} ({{ notification.completion_datetime|date:"m月d日 H時i分" }}に完了)</li>
                 {% endfor %}
             </ul>
         </div>
@@ -68,7 +72,7 @@
 {% endblock %}
 
 {% block javascript %}
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.7/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function(){
         var calendarEl = document.getElementById('calendar');
@@ -87,6 +91,10 @@
 
                 // タスク一覧ページへの遷移
                 window.location.href = `/tasks/today/${selectDate}/`;
+            },
+            eventDidMount: function(info){ // イベントにツールチップを追加
+                info.el.setAttribute('data-tooltip', info.event.title);
+                info.el.classList.add('has-tooltip');
             }
         });
 

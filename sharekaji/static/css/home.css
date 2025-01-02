@@ -1,0 +1,80 @@
+.reminder-section {
+    background-color: white;
+    border: 1px solid black;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.reminder-title {
+    color: red;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.reminder-task {
+    color: black;
+    font-size: 14px;
+    margin: 0;
+    padding: 0;
+}
+
+.reminder-section ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.notification-success {
+    background-color: white;
+    border: 1px solid black;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.success-title {
+    color: orange;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.success-task {
+    color: black;
+    font-size: 14px;
+    margin: 0;
+    padding: 0;
+}
+
+.notification-success ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+/* ツールチップのデザイン */
+.has-tooltip {
+    position: relative;
+    cursor: pointer;
+}
+
+.has-tooltip:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: -30px;
+    left: 0;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+}
+
+.has-tooltip:hover::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 10px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent rgba(0, 0, 0, 0.8) transparent;
+    z-index: 1000;
+}
