@@ -199,7 +199,20 @@ def delete_comment(request, comment_id):
 
 class RecurringTaskListView(View):
     def get(self, request):
-        recurrences = Recurrence.objects.filter(user=request.user)
+        family_id = request.user.family_id
+        recurrences = Recurrence.objects.filter(user__family_id=family_id)
+
+        recurrence_type_mapping = {
+            1: "日",
+            2: "週",
+            3: "月"
+        }
+
+        for recurrence in recurrences:
+            hours = recurrence.estimated_time / 60
+            recurrence.formatted_time = f"{hours:.1f}時間"
+            recurrence.recurrence_type_display = recurrence_type_mapping.get(recurrence.recurrence_type)
+        
         context = {
             'recurrences': recurrences
         }
@@ -562,13 +575,18 @@ class RecurringTaskEditView(LoginRequiredMixin, UpdateView):
         print("=== フォームのクリーンデータ ===")
         print(form.cleaned_data)
 
+        # 担当者が未選択の場合、自動で担当者を割り当て
+        if form.cleaned_data.get('user') is None:
+            form.instance.user = self.get_auto_assigned_user()
+            print(f"自動割り当てされた担当者: {form.instance.user}")
+
         # 保存処理
         response = super().form_valid(form)
 
         # 必要なデータの取得
         recurrence = form.instance
         task_name = form.cleaned_data.get('task_name')
-        user = form.cleaned_data.get('user')
+        user = form.cleaned_data.get('user') or self.get_auto_assigned_user()
         due_time = form.cleaned_data.get('due_time')
         estimated_time = form.cleaned_data.get('estimated_time')
 
@@ -599,6 +617,21 @@ class RecurringTaskEditView(LoginRequiredMixin, UpdateView):
             current_date += timedelta(days=1)
 
         return response
+    
+    def get_auto_assigned_user(self):
+        # 家族内で未完了タスクが最も少ないメンバーを自動で割り当てる
+        family_members = User.objects.filter(family_id=self.request.user.family_id)
+
+        # 各メンバーの未完了タスク数を計算
+        members_with_task_count = family_members.annotate(
+            incomplete_task_count=Count('task', filter=Q(task__completion_status=False))
+        ).order_by('incomplete_task_count')
+
+        # 最もタスクが少ないメンバーを選択
+        assigned_user = members_with_task_count.first()
+
+        # 万が一、家族メンバーが存在しない場合は現在のユーザーを返す
+        return assigned_user or self.request.user
 
     def is_task_date(self, date, recurrence):
         """周期タスクが特定の日付に該当するかを判定"""
@@ -615,7 +648,6 @@ class RecurringTaskEditView(LoginRequiredMixin, UpdateView):
         context['family_members'] = User.objects.filter(family_id=self.request.user.family_id)
         context['day_range'] = range(1, 31 + 1)
         return context
-
 
 class IndividualTaskEditView(LoginRequiredMixin, UpdateView):
     model = Task
@@ -665,12 +697,12 @@ class IndividualTaskDeleteView(LoginRequiredMixin, View):
 
 class RecurringTaskDeleteView(LoginRequiredMixin, View):
     def get(self, request, task_id):
-        recurring_task = get_object_or_404(Recurrence, id=task_id, user=request.user)
+        recurring_task = get_object_or_404(Recurrence, id=task_id)
         return render(request, 'tasks/recurring_task_delete.html', {'recurring_task': recurring_task})
 
     def post(self, request, task_id):
         try:
-            recurring_task = get_object_or_404(Recurrence, id=task_id, user=request.user)
+            recurring_task = get_object_or_404(Recurrence, id=task_id)
 
             # 削除対象の周期タスクに基づいて生成された未来の日付の個別タスクを取得
             future_tasks = Task.objects.filter(

@@ -70,13 +70,13 @@ class Task(models.Model):
 
 # recurrences
 class Recurrence(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)  # usersとのリレーション
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)  # usersとのリレーション
     task_name = models.CharField(max_length=100)  # 家事タスク名
     start_date = models.DateField()  # 繰り返し開始日
     due_time = models.TimeField()  # タスク完了期限時刻
     estimated_time = models.IntegerField()  # 所要時間見込 (分単位)
-    recurrence_type = models.IntegerField()  # 繰り返し周期: 0 = なし, 1 = 日, 2 = 週, 3 = 月
-    weekday = models.IntegerField(null=True, blank=True)  # 繰り返しの曜日（例: 月=0, 火=1, ...）
+    recurrence_type = models.IntegerField()  # 繰り返し周期: 1 = 日, 2　= 週, 3　= 月
+    weekday = models.IntegerField(null=True, blank=True)  # 繰り返しの曜日（例: 日=1, 月=2, ...）
     day_of_month = models.IntegerField(null=True, blank=True)  # 日付指定（例: 毎月15日）
     end_date = models.DateField(null=True, blank=True)  # 繰り返し終了日
     created_at = models.DateTimeField(auto_now_add=True)  # タスク作成日時

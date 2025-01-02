@@ -4,7 +4,7 @@
 
 {% block content %}
     <div class="container mt-4">
-        <h5>周期タスク登録</h5>
+        <h4 class="page-title"><strong>周期タスク登録</strong></h4>
         <form method="post" action="{% url 'add_recurring_tasks' %}">
              {% csrf_token %}
             <div class="mb-3">
@@ -86,12 +86,16 @@
                 <input type="date" class="form-control" id="end_date" name="end_date" required>
             </div>
 
-            <div class="d-flex justify-content-between">
-                <button type="submit" class="btn btn-primary">登録</button>
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="text-center flex-grow-1">
+                    <button type="submit" class="btn btn-primary">登録</button>
+                </div>
+                <div>
+                    <a href="{% url 'recurring_tasks' %}" class="btn btn-secondary">戻る</a>
+                </div>
             </div>
         </form>
-        <a href="{% url 'recurring_tasks' %}" class="btn btn-secondary mt-3">戻る</a>
-    </div>    
+    </div> 
 
     <!-- **JavaScriptで繰り返し周期に応じてフィールドの表示を切り替え** -->
     <script>

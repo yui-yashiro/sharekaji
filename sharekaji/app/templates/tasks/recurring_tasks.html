@@ -2,43 +2,47 @@
 
 {% block title %}周期タスク一覧{% endblock %}
 
-{% block content %}
+{% block head %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/task.css' %}">
+{% endblock %}
 
+{% block content %}
 <div class="container mt-4">
-    <h4 class="page-title">周期タスク一覧</h4>
+    <h4 class="page-title"><strong>周期タスク一覧</strong></h4>
     <div class="d-flex justify-content-end mb-3">
-        <a href="{% url 'add_recurring_tasks' %}" class="btn btn-success">＋周期タスクを追加する</a>
+        <a href="{% url 'add_recurring_tasks' %}" class="add-task-button">＋周期タスクを追加する</a>
     </div>
 
     <!-- メッセージ表示ブロックの追加 -->
         {% if messages %}
         <div class="messages">
             {% for message in messages %}
-            <div class="alert {{ message.tags }}" style="color: red; font-weight: bold;">{{ message }}</div>
+            <div class="alert {{ message.tags }}">{{ message }}</div>
             {% endfor %}
         </div>
         {% endif %}
 
     <!-- タスクが存在する場合の表示 -->
     {% if recurrences %}
-        <div class="task-box">
-            {% for recurrence in recurrences %}
+        {% for recurrence in recurrences %}
+            <div class="task-box p-3 mb-3 border rounded">
                 <div class="task-details">
                     <p><strong>家事内容：</strong>{{ recurrence.task_name }}</p>
-                    <p><strong>担当者：</strong> {{ recurrence.assignee }}</p>
-                    <p><strong>タスク開始日：</strong> {{ recurrence.start_date|date:"Y-m-d" }}</p>
-                    <p><strong>所要時間見込み：</strong>  {{ recurrence.estimated_time }}</p>
+                    <p><strong>担当者：</strong> {{ recurrence.user.name }}</p>
+                    <p><strong>タスク開始日：</strong> {{ recurrence.start_date|date:"Y年m月d日" }}</p>
+                    <p><strong>所要時間見込み：</strong>  {{ recurrence.formatted_time }}</p>
                     <p><strong>対応完了期限：</strong> {{ recurrence.due_time|time }}</p>
-                    <p><strong>繰り返し周期：</strong> {{ recurrence.recurrence_type }}</p>
-                    <p><strong>繰り返し終了日：</strong> {{ recurrence.end_date|date:"Y-m-d" }}</p>
+                    <p><strong>繰り返し周期：</strong> {{ recurrence.recurrence_type_display }}</p>
+                    <p><strong>繰り返し終了日：</strong> {{ recurrence.end_date|date:"Y年m月d日" }}</p>
                 </div>
 
-                <div class="task-actions">
-                    <a href="{% url 'recurring_task_edit' recurrence.id %}" class="btn btn-primary btn-sm">編集する</a>
-                    <a href="{% url 'recurring_task_delete' recurrence.id %}" class="btn btn-danger btn-sm">削除する</a>
+                <div class="task-actions d-flex justify-content-end">
+                    <a href="{% url 'recurring_task_edit' recurrence.id %}" class="btn btn-primary btn-sm mx-1">編集する</a>
+                    <a href="{% url 'recurring_task_delete' recurrence.id %}" class="btn btn-danger btn-sm mx-1">削除する</a>
                 </div>
-            {% endfor %}
-        </div>
+            </div>
+        {% endfor %}
     {% else %}
         <!-- タスクがない場合 -->
         <p>現在、タスクがありません。新しいタスクを追加してください。</p>
