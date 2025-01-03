@@ -4,7 +4,7 @@
     margin-bottom: 20px;
 }
 
-/* トグルボタンの配置を調整 */
+/* ボタンの配置を調整 */
 .toggle-container {
     display: flex;
     justify-content: flex-end;
@@ -12,7 +12,7 @@
     gap: 5px;
 }
 
-/* タスク分析ボタンスタイル */
+/* 家事分析ボタンスタイル */
 .toggle-btn-completed {
     padding: 10px 20px;
     border: none;

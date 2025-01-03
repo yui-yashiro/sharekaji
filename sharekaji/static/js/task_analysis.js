@@ -1,5 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
+    const formatPercentage = (value, total) => ((value / total) * 100).toFixed(1) + '%';
+
     // 完了タスクグラフ
+    const totalCompleted = completedData.reduce((acc, value) => acc + value, 0);
     const completedCtx = document.getElementById('completedChart').getContext('2d');
     new Chart(completedCtx, {
         type: 'doughnut',
@@ -16,12 +19,33 @@ document.addEventListener('DOMContentLoaded', function () {
             plugins: {
                 legend: {
                     position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            const value = context.raw;
+                            const label = context.label || '';
+                            const percentage = formatPercentage(value, totalCompleted);
+                            return `${label}: ${value} (${percentage})`;
+                        }
+                    }
+                },
+                datalabels: {
+                    anchor: 'end',
+                    align: 'end',
+                    formatter: (value, context) => {
+                        const percentage = formatPercentage(value, totalCompleted);
+                        return `${context.chart.data.labels[context.dataIndex]}\n${percentage}`;
+                    },
+                    color: '#000'
                 }
             }
-        }
+        },
+        plugins: [ChartDataLabels]
     });
 
     // 未完了タスクグラフ
+    const totalIncomplete = incompleteData.reduce((acc, value) => acc + value, 0);
     const incompleteCtx = document.getElementById('incompletedChart').getContext('2d');
     new Chart(incompleteCtx, {
         type: 'doughnut',
@@ -38,9 +62,29 @@ document.addEventListener('DOMContentLoaded', function () {
             plugins: {
                 legend: {
                     position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            const value = context.raw;
+                            const label = context.label || '';
+                            const percentage = formatPercentage(value, totalIncomplete);
+                            return `${label}: ${value} (${percentage})`;
+                        }
+                    }
+                },
+                datalabels: {
+                    anchor: 'end',
+                    align: 'end',
+                    formatter: (value, context) => {
+                        const percentage = formatPercentage(value, totalIncomplete);
+                        return `${context.chart.data.labels[context.dataIndex]}\n${percentage}`;
+                    },
+                    color: '#000'
                 }
             }
-        }
+        },
+        plugins: [ChartDataLabels]
     });
 
     // グラフ切り替え機能
