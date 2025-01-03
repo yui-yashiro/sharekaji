@@ -7,11 +7,12 @@ document.addEventListener('DOMContentLoaded', function () {
             labels: completedLabels,
             datasets: [{
                 data: completedData,
-                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
+                backgroundColor: ['#336bbee7', '#2C3E50', '#fa3f06', '#98FB98', '#9370DB', '#FFA07A'],
             }]
         },
         options: {
             responsive: true,
+            aspectRatio: 1.5,
             plugins: {
                 legend: {
                     position: 'top',
@@ -28,11 +29,12 @@ document.addEventListener('DOMContentLoaded', function () {
             labels: incompleteLabels,
             datasets: [{
                 data: incompleteData,
-                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
+                backgroundColor: ['#336bbee7', '#2C3E50', '#fa3f06', '#98FB98', '#9370DB', '#FFA07A'],
             }]
         },
         options: {
             responsive: true,
+            aspectRatio: 1.5,
             plugins: {
                 legend: {
                     position: 'top',
@@ -42,20 +44,22 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // グラフ切り替え機能
-    const buttons = document.querySelectorAll('.toggle-btn');
+    const completedButton = document.querySelector('.toggle-btn-completed');
+    const incompletedButton = document.querySelector('.toggle-btn-incompleted');
     const completedContainer = document.querySelector('[data-container="completed"]');
-    const incompleteContainer = document.querySelector('[data-container="incompleted"]');
+    const incompletedContainer = document.querySelector('[data-container="incompleted"]');
 
-    buttons.forEach(button => {
-        button.addEventListener('click', () => {
-            const target = button.getAttribute('data-target');
-            if (target === 'completed') {
-                completedContainer.style.display = 'block';
-                incompleteContainer.style.display = 'none';
-            } else {
-                completedContainer.style.display = 'none';
-                incompleteContainer.style.display = 'block';
-            }
+    if (completedButton && incompletedButton && completedContainer && incompletedContainer) {
+        completedButton.addEventListener('click', () => {
+            completedContainer.style.display = 'block';
+            incompletedContainer.style.display = 'none';
         });
-    });
+
+        incompletedButton.addEventListener('click', () => {
+            completedContainer.style.display = 'none';
+            incompletedContainer.style.display = 'block';
+        });
+    } else {
+        console.error('直近１週間の家事はありません。');
+    }
 });

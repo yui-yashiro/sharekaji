@@ -1,20 +1,45 @@
+/* ページタイトル */
+.page-title{
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* トグルボタンの配置を調整 */
+.toggle-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+    gap: 5px;
+}
+
 /* タスク分析ボタンスタイル */
-.toggle-btn {
+.toggle-btn-completed {
     padding: 10px 20px;
-    margin: 10px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    background-color: #4BC0C0;
+    background-color: blue;
     color: white;
 }
 
-.toggle-btn:hover {
-    background-color: #36A2EB;
+.toggle-btn-incompleted {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: red;
+    color: white;
+}
+
+/* タスクタイトルのスタイル */
+.task-title {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 20px;
 }
 
 /* グラフコンテナ */
-[data-container="completed"], [data-container="incomplete"] {
+[data-container="completed"], [data-container="incompleted"] {
     text-align: center;
     margin-top: 20px;
 }

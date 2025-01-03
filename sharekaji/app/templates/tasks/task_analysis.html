@@ -3,22 +3,29 @@
 
 {% block title %}家事分析{% endblock %}
 
+{% block head %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/task_analysis.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="container">
-    <h4 class="page-title"><strong>家事分析</strong></h4>
-    <button class="toggle-btn" data-target="completed">完了</button>
-    <button class="toggle-btn" data-target="incompleted">未完了</button>
+<div class="container mt-4">
+    <h4 class="page-title">家事分析</h4>
+    <div class="toggle-container">
+        <button class="toggle-btn-completed" data-target="completed">完了</button>
+        <button class="toggle-btn-incompleted" data-target="incompleted">未完了</button>
+    </div>
 
     <!-- 完了タスクグラフ -->
     <div data-container="completed">
-        <h3>直近1週間 - 完了タスク</h3>
-        <canvas id="completedChart" width="400" height="400"></canvas>
+        <h5 class="task-title">直近1週間 - 完了タスク</h5>
+        <canvas id="completedChart" width="200" height="200"></canvas>
     </div>
 
     <!-- 未完了タスクグラフ -->
     <div data-container="incompleted" style="display:none;">
-        <h3>直近1週間 - 未完了タスク</h3>
-        <canvas id="incompletedChart" width="400" height="400"></canvas>
+        <h5 class="task-title">直近1週間 - 未完了タスク</h5>
+        <canvas id="incompletedChart" width="200" height="200"></canvas>
     </div>
 </div>
 <script>
@@ -28,10 +35,6 @@
     const incompleteLabels = {{ incomplete_labels|safe }};
     const incompleteData = {{ incomplete_data|safe }};
 </script>
-{% endblock %}
-
-{% block css %}
-<link rel="stylesheet" href="{% static 'css/task_analysis.css' %}">
 {% endblock %}
 
 {% block javascript %}
