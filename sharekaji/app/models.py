@@ -1,19 +1,35 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 
-# Create your models here.
-# users
+# カスタムユーザーマネージャを定義するクラス
+class UserManager(BaseUserManager):
+    def create_user(self, name, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError('The Email field must be set')
+        email = self.normalize_email(email)
+        user = self.model(name=name, email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+    
+    def create_superuser(self, name, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self.create_user(name, email, password, **extra_fields)
+
+
+# ユーザーモデル
 class User(AbstractUser):
-    # 不要なフィールドを完全に削除
-    first_name = None
-    last_name = None
-    date_joined = None
+    # 不要なフィールドを削除
     username = None
-    is_superuser = None
-    is_staff = None
-    is_active = None
 
-    name = models.CharField(max_length=32, unique=True) # ユーザー名
+    name = models.CharField(max_length=32) # ユーザー名
     email = models.EmailField(max_length=256, unique=True) # メールアドレス
     password = models.CharField(max_length=100) # パスワード
     family_id = models.ForeignKey('Family', on_delete=models.SET_NULL, null=True, related_name="members")  # 家族ID
@@ -34,12 +50,15 @@ class User(AbstractUser):
         blank=True
     )
 
-    USERNAME_FIELD = "name"
+    USERNAME_FIELD = "email"
     EMAIL_FIELD = "email"
-    REQUIRED_FIELDS = ["email"]
+    REQUIRED_FIELDS = ["name"]
+
+    objects = UserManager()
 
     class Meta:
         db_table = "users"
+        unique_together = ("family_id", "name")
 
 # families
 class Family(models.Model):
