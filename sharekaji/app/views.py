@@ -697,8 +697,17 @@ class IndividualTaskDeleteView(LoginRequiredMixin, View):
 
 class RecurringTaskDeleteView(LoginRequiredMixin, View):
     def get(self, request, task_id):
-        recurring_task = get_object_or_404(Recurrence, id=task_id)
-        return render(request, 'tasks/recurring_task_delete.html', {'recurring_task': recurring_task})
+        recurrence = get_object_or_404(Recurrence, id=task_id)
+        recurrence.formatted_time = f"{recurrence.estimated_time / 60:.1f}時間"
+
+        recurrence_type_mapping = {
+            1: "日",
+            2: "週",
+            3: "月"
+        }
+        recurrence.recurrence_type_display = recurrence_type_mapping.get(recurrence.recurrence_type)
+
+        return render(request, 'tasks/recurring_task_delete.html', {'recurrence': recurrence})
 
     def post(self, request, task_id):
         try:
