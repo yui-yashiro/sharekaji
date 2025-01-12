@@ -12,6 +12,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render, reverse
 from django.urls import reverse_lazy
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_protect
@@ -35,7 +36,7 @@ class SignUpView(View):
             with transaction.atomic():
                 user = form.save(commit=False)
                 if not user.family_id:
-                    family = Family.objects.create(name=f"{user.name}家")
+                    family = Family.objects.create(name=f"{user.username}家")
                     user.family_id = family
             user.save()
             login(request, user)
@@ -70,15 +71,15 @@ class HomeView(View):
     def get(self, request, year=None, month=None):
         if not request.user.is_authenticated:
             return redirect('login') 
-        # 現在時刻を定義
-        now = timezone.now()
+        # タスク表示基準を標準時間から日本時間に変更
+        current_time = timezone.localtime()
 
         # 完了期限2時間前を切った未完了タスク通知の作成
         reminders = Task.objects.filter(
             user=request.user,
             completion_status=False,
-            due_datetime__lte=now + timedelta(hours=2),
-            due_datetime__gt=now
+            due_datetime__lte=current_time + timedelta(hours=2),
+            due_datetime__gt=current_time
         )
 
         # タスク完了通知の作成
@@ -90,8 +91,8 @@ class HomeView(View):
         
         # 年月の設定（カレンダー表示用）
         if year is None or month is None:
-            year = now.year
-            month = now.month
+            year = current_time.year
+            month = current_time.month
 
         # 個別タスクを取得してイベントデータに追加（重複を防ぐため、localtimeで調整）
         tasks = Task.objects.filter(user=request.user)
@@ -102,18 +103,22 @@ class HomeView(View):
             }
             for task in tasks
         ]
-
+        
+        
         # 未完了タスクを取得
         incomplete_tasks = Task.objects.filter(
             user=request.user,
-            completion_status=False
+            completion_status=False,
+            due_datetime__gte=current_time - timedelta(days=3),
+            due_datetime__lte=current_time + timedelta(days=7)
         )
 
         # 完了したタスクを取得
         completed_tasks = Task.objects.filter(
             completion_status=True,
-            user__family_id=request.user.family_id,
-            completion_datetime__isnull=False
+            user=request.user,
+            completion_datetime__isnull=False,
+            completion_datetime__gte=current_time - timedelta(days=7)
             )
 
         context = {
@@ -182,7 +187,7 @@ def add_comment(request):
         return JsonResponse({
             "id": comment.id,
             "comment": comment_text,
-            "user": user.name,
+            "user": user.username,
             'avatar': user.profile_image.url if user.profile_image and hasattr(user.profile_image, 'url') else '/media/profile_images/default_profile_image.png',
             "created_at": comment.created_at.strftime('%Y-%m-%d %H:%M:%S'),
         })
@@ -209,8 +214,11 @@ class RecurringTaskListView(View):
         }
 
         for recurrence in recurrences:
+            # 所要時間
             hours = recurrence.estimated_time / 60
             recurrence.formatted_time = f"{hours:.1f}時間"
+
+            # 繰り返し周期の表示
             recurrence.recurrence_type_display = recurrence_type_mapping.get(recurrence.recurrence_type)
         
         context = {
@@ -220,7 +228,7 @@ class RecurringTaskListView(View):
 
 class RecurringTaskCreateView(CreateView):
     model = Recurrence
-    fields = ['task_name', 'start_date', 'due_time', 'estimated_time', 'recurrence_type', 'weekday', 'day_of_month', 'end_date']
+    form_class = RecurringTaskForm
     template_name = 'tasks/add_recurring_tasks.html'
     success_url = reverse_lazy('recurring_tasks')  # 登録後、周期タスク一覧にリダイレクト
 
@@ -228,70 +236,84 @@ class RecurringTaskCreateView(CreateView):
         print("form_valid メソッドが呼ばれました")
         print(f"フォームの内容: {form.cleaned_data}")
 
-        # 担当者が未選択の場合、自動割り当て
-        assignee_id = self.request.POST.get("assignee")
-        if assignee_id:
-            assignee = User.objects.get(id=assignee_id)
-            form.instance.user = assignee
-            print(f"担当者が選択されました: {assignee}")
+        # フォームで指定された担当者を取得
+        assigned_user = form.cleaned_data.get('user')
+        if assigned_user:
+            form.instance.user = assigned_user
+            print(f"担当者が選択されました: {assigned_user}")
         else:
+            # 担当者が未指定の場合、自動割り当てを実行
             form.instance.user = self.get_auto_assigned_user()
             print(f"担当者が未選択のため、自動割り当て: {form.instance.user}")
 
-        recurrence = form.save()
+        # 繰り返し周期に基づいて不要なフィールドをクリア
+        if form.cleaned_data['recurrence_type'] != 1:  # 週でない場合
+            form.instance.weekday = None
+        if form.cleaned_data['recurrence_type'] != 2:  # 月でない場合
+            form.instance.day_of_month = None
+
+        recurrence = form.save()  # フォームの保存
         print(f"周期タスクが保存されました: {recurrence}")
 
+        # タスクの作成処理
         current_date = recurrence.start_date
+        assigned_user = form.instance.user  # 初期担当者
+
         while current_date <= recurrence.end_date:
             if self.is_task_date(current_date, recurrence):
                 # タスクを作成
-                task = Task.objects.create(
-                    user=form.instance.user,
+                Task.objects.create(
+                    user=assigned_user,
                     task_name=recurrence.task_name,
                     scheduled_datetime=timezone.make_aware(datetime.combine(current_date, recurrence.due_time)),
                     due_datetime=timezone.make_aware(datetime.combine(current_date, recurrence.due_time)),
                     estimated_time=recurrence.estimated_time,
                     recurrence=recurrence  # 親タスク（周期タスク）を参照
                 )
-                print(f"タスク作成: {task.task_name} on {task.scheduled_datetime}")
-                
-                # 次回の担当者を設定
-                form.instance.user = self.get_next_user(form.instance.user)
+                print(f"タスク作成: {recurrence.task_name} on {current_date}")
+
+                # 担当者をローテーション
+                if form.cleaned_data.get('user') is None:
+                    assigned_user = self.get_next_user(assigned_user)
             current_date += timedelta(days=1)
 
         return super().form_valid(form)
 
     def get_auto_assigned_user(self):
-        # 最初のタスクを割り当てる際に、最もタスク数が少ない家族メンバーを選ぶ
-        # 家族全員を取得
         family_members = User.objects.filter(family_id=self.request.user.family_id)
 
-        # 各メンバーのタスク数を計算
-        task_counts = family_members.annotate(task_count=Count('task'))
+        if not family_members.exists():
+            print("家族メンバーが見つからないため、現在のユーザーを割り当てます。")
+            return self.request.user
 
-        # タスク数が最も少ないメンバーを選択
+        # 未完了タスク数を計算し、タスクが最も少ないメンバーを取得
+        task_counts = family_members.annotate(task_count=Count('task', filter=Q(task__completion_status=False)))
         least_task_user = task_counts.order_by('task_count').first()
 
-        # 家族がいない場合は入力者をデフォルトで返す
-        return least_task_user or self.request.user
+        print("未完了タスク数:")
+        for member in task_counts:
+            print(f"{member.username}: {member.task_count} 未完了タスク")
+
+        return least_task_user
 
     def get_next_user(self, current_user):
-        # 現在の担当者の次にタスクを担当するユーザーを取得（家族メンバー間で順番に回す）
-        # 家族メンバーを取得
-        family_members = User.objects.filter(family_id=self.request.user.family_id).order_by('id')
+        family_members = list(User.objects.filter(family_id=self.request.user.family_id).order_by('id'))
 
-        # 現在の担当者の次のユーザーを取得
-        current_index = list(family_members).index(current_user)
+        # 現在の担当者の次のユーザーを取得（ローテーション）
+        current_index = family_members.index(current_user)
         next_index = (current_index + 1) % len(family_members)
+        next_user = family_members[next_index]
 
-        return family_members[next_index]
+        print(f"現在の担当者: {current_user.username}, 次の担当者: {next_user.username}")
+        return next_user
 
     def is_task_date(self, date, recurrence):
-        if recurrence.recurrence_type == 1:  # 毎日
+        # 繰り返しの条件に応じてタスクを作成するか判定
+        if recurrence.recurrence_type == 0:  # 毎日
             return True
-        elif recurrence.recurrence_type == 2 and date.weekday() == recurrence.weekday:  # 毎週
+        if recurrence.recurrence_type == 1 and date.weekday() == recurrence.weekday:  # 毎週
             return True
-        elif recurrence.recurrence_type == 3 and date.day == recurrence.day_of_month:  # 毎月
+        if recurrence.recurrence_type == 2 and date.day == recurrence.day_of_month:  # 毎月
             return True
         return False
 
@@ -309,54 +331,64 @@ class RecurringTaskCreateView(CreateView):
     
 class Individual_TaskCreateView(CreateView):
     model = Task
-    fields = ['task_name', 'estimated_time', 'due_datetime']
+    form_class = IndividualTaskForm
     template_name = 'tasks/add_individual_tasks.html'
     success_url = reverse_lazy('today_tasks')
 
     def form_valid(self, form):
-         # 家族メンバーを取得
-        family_members = User.objects.filter(family_id=self.request.user.family_id)
+        print("POSTデータ:", self.request.POST)
 
-        if not form.cleaned_data.get('user'):  # 担当者が未設定の場合
-            # 各家族メンバーの未完了タスク数を取得
-            members_with_task_count = family_members.annotate(
-                incomplete_task_count=Count('task', filter=Q(task__completion_status=False))
-            ).order_by('incomplete_task_count')
+        # フォームで指定された担当者を取得
+        assigned_user = form.cleaned_data.get('user')
+        print("フォームから取得した担当者:", assigned_user)
 
-            # タスク数が最も少ないメンバーを割り当て
-            assigned_user = members_with_task_count.first()
-            form.instance.user = assigned_user
-            print(f"自動割り当てされた担当者: {assigned_user}")
-        else:  
-            form.instance.user = self.request.user
-        
-        # `scheduled_datetime` を現在の日時として設定し、タイムゾーン情報を追加
-        form.instance.scheduled_datetime = timezone.make_aware(
-            datetime.combine(form.cleaned_data.get('due_datetime').date(), datetime.min.time())
+        if not assigned_user:
+            # 担当者が未設定の場合、自動割り当てを実行
+            print("担当者が未指定のため自動割り当てを開始します。")
+            family_members = User.objects.filter(family_id=self.request.user.family_id)
+            if family_members.exists():
+                # 各メンバーの未完了タスク数を計算
+                members_with_task_count = family_members.annotate(
+                    incomplete_task_count=Count('task', filter=Q(task__completion_status=False))
+                )
+                assigned_user = members_with_task_count.order_by('incomplete_task_count').first()
+                print("未完了タスクが最も少ない担当者を自動割り当て:", assigned_user)
+            else:
+                assigned_user = self.request.user
+                print("家族メンバーがいないため、現在のユーザーを割り当てます:", assigned_user)
+
+        # フォームに担当者を設定
+        form.instance.user = assigned_user
+        print("最終的な担当者:", form.instance.user)
+
+         # `due_datetime` から `scheduled_datetime` を計算
+        due_datetime = form.cleaned_data.get('due_datetime')
+        if due_datetime:
+            form.instance.scheduled_datetime = timezone.make_aware(
+                datetime.combine(due_datetime.date(), datetime.min.time())
         )
+        else:
+            # デフォルト値として現在日時を設定
+            form.instance.scheduled_datetime = timezone.now()
+            print("`due_datetime` が指定されていないため、`scheduled_datetime` に現在日時を設定しました。")
 
-        # デバッグ出力で確認
-        print("タスク登録処理が呼ばれました")
-        print("タスク名:", form.instance.task_name)
-        print("所要時間（分）:", form.instance.estimated_time)
-        print("完了期限:", form.instance.due_datetime)
-        print("予定日時:", form.instance.scheduled_datetime)
-        print("ユーザー:", form.instance.user)
-
-        saved_task = form.save(commit=True)
+        # タスクの保存
+        saved_task = form.save()
         if saved_task:
-            print("タスクが正常に保存されました。")
+            print("タスクが正常に保存されました:", saved_task)
         else:
             print("タスクの保存に失敗しました。")
 
         return super().form_valid(form)
-    
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['family_id'] = self.request.user.family_id
+        return kwargs
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.request.user.is_authenticated:
-            context['family_members'] = User.objects.filter(family_id=self.request.user.family_id)
-        else:
-            context['family_members'] = []
+        context['family_members'] = User.objects.filter(family_id=self.request.user.family_id)
         return context
 
 class TaskAnalysisView(View):
@@ -372,18 +404,18 @@ class TaskAnalysisView(View):
             user__in=family_members,
             completion_status=True,
             completion_datetime__gte=timezone.now() - timedelta(days=7)
-        ).values('user__name').annotate(task_count=Count('id'))
+        ).values('user__username').annotate(task_count=Count('id'))
 
         # 未完了タスクを家族ごとに集計
         incomplete_tasks = Task.objects.filter(
             user__in=family_members,
             completion_status=False,
-        ).values('user__name').annotate(task_count=Count('id'))
+        ).values('user__username').annotate(task_count=Count('id'))
 
         # ラベルとデータを作成
-        completed_labels = [task['user__name'] for task in completed_tasks]
+        completed_labels = [task['user__username'] for task in completed_tasks]
         completed_data = [task['task_count'] for task in completed_tasks]
-        incomplete_labels = [task['user__name'] for task in incomplete_tasks]
+        incomplete_labels = [task['user__username'] for task in incomplete_tasks]
         incomplete_data = [task['task_count'] for task in incomplete_tasks]
 
         # コンテキストにデータを渡す
@@ -523,44 +555,46 @@ class SignupInviteView(View):
             return redirect('mypage')
         return render(request, 'accounts/signup_family_invite.html', {'form':form, 'family':family})
 
-class AccountDeleteView(LoginRequiredMixin, View):
+class AccountDeleteView(View):
+    @method_decorator(login_required)
     def get(self, request):
-        # 未完了のタスクがあるか確認
-        has_incomplete_tasks = request.user.task_set.filter(completion_status=False).exists()
         return render(request, 'accounts/account_delete.html', {
-            'has_incomplete_tasks': has_incomplete_tasks,
+            'error_message': '',
+            'show_confirm_popup': False,
         })
 
+    @method_decorator(login_required)
     def post(self, request):
         user = request.user
         password = request.POST.get('password')
         confirm = request.POST.get('confirm') == 'true'
 
-        # confirmがtrueなら削除を実行
+        # パスワード確認
+        if not user.check_password(password):
+            return render(request, 'accounts/account_delete.html', {
+                'error_message': 'パスワードが正しくありません。',
+                'show_confirm_popup': False,
+            })
+
+        # 未完了タスクがあるか確認
+        incomplete_tasks = user.task_set.filter(completion_status=False)
+        if incomplete_tasks.exists():
+            # 未完了タスクがある場合の対応
+            return render(request, 'accounts/account_delete.html', {
+                'error_message': '未完了のタスクがあります。他のメンバーに割り振るか、削除してください。',
+                'show_confirm_popup': False,
+            })
+
+        # 確認ポップアップの状態
         if confirm:
             user.delete()
             logout(request)
             return redirect('login')
 
-        # パスワードの確認
-        if authenticate(username=user.email, password=password):
-            has_incomplete_tasks = user.task_set.filter(completion_status=False).exists()
-            if has_incomplete_tasks:
-                # 未完了タスクがある場合はエラーメッセージとともに画面を再表示
-                return render(request, 'accounts/account_delete.html', {
-                    'has_incomplete_tasks': True,
-                    'error_message': '未完了のタスクがあるため、アカウント削除できません。'
-                })
-             # 削除確認ポップアップを表示する
-            return render(request, 'accounts/account_delete.html', {
-                'show_confirm_popup': True,
-            })
-        else:
-            # パスワードが間違っている場合
-            return render(request, 'accounts/account_delete.html', {
-                'has_incomplete_tasks': False,
-                'error_message': 'パスワードが正しくありません。'
-            })
+        return render(request, 'accounts/account_delete.html', {
+            'error_message': '',
+            'show_confirm_popup': True,
+        })
 
 class RecurringTaskEditView(LoginRequiredMixin, UpdateView):
     model = Recurrence
@@ -575,10 +609,21 @@ class RecurringTaskEditView(LoginRequiredMixin, UpdateView):
         print("=== フォームのクリーンデータ ===")
         print(form.cleaned_data)
 
-        # 担当者が未選択の場合、自動で担当者を割り当て
-        if form.cleaned_data.get('user') is None:
+        # フォームで指定された担当者を取得
+        assigned_user = form.cleaned_data.get('user')
+        if assigned_user:
+            form.instance.user = assigned_user
+            print(f"担当者が選択されました: {assigned_user}")
+        else:
+            # 担当者が未指定の場合、自動割り当てを実行
             form.instance.user = self.get_auto_assigned_user()
-            print(f"自動割り当てされた担当者: {form.instance.user}")
+            print(f"担当者が未選択のため、自動割り当て: {form.instance.user}")
+
+        # 繰り返し周期に基づいて不要なフィールドをクリア
+        if form.cleaned_data['recurrence_type'] != 1:  # 週でない場合
+            form.instance.weekday = None
+        if form.cleaned_data['recurrence_type'] != 2:  # 月でない場合
+            form.instance.day_of_month = None
 
         # 保存処理
         response = super().form_valid(form)
@@ -586,7 +631,7 @@ class RecurringTaskEditView(LoginRequiredMixin, UpdateView):
         # 必要なデータの取得
         recurrence = form.instance
         task_name = form.cleaned_data.get('task_name')
-        user = form.cleaned_data.get('user') or self.get_auto_assigned_user()
+        user = form.instance.user  # 最終決定された担当者
         due_time = form.cleaned_data.get('due_time')
         estimated_time = form.cleaned_data.get('estimated_time')
 
@@ -614,24 +659,43 @@ class RecurringTaskEditView(LoginRequiredMixin, UpdateView):
                     print(f"タスク新規作成: {task}")
                 else:
                     print(f"タスク更新: {task}")
+
+                # 担当者をローテーション
+                if assigned_user is None:  # 担当者が未指定の場合のみローテーション
+                    user = self.get_next_user(user)
             current_date += timedelta(days=1)
 
         return response
-    
+
     def get_auto_assigned_user(self):
         # 家族内で未完了タスクが最も少ないメンバーを自動で割り当てる
         family_members = User.objects.filter(family_id=self.request.user.family_id)
 
-        # 各メンバーの未完了タスク数を計算
-        members_with_task_count = family_members.annotate(
-            incomplete_task_count=Count('task', filter=Q(task__completion_status=False))
-        ).order_by('incomplete_task_count')
+        if not family_members.exists():
+            print("家族メンバーが見つからないため、現在のユーザーを割り当てます。")
+            return self.request.user
 
-        # 最もタスクが少ないメンバーを選択
-        assigned_user = members_with_task_count.first()
+        # 未完了タスク数を計算し、タスクが最も少ないメンバーを取得
+        task_counts = family_members.annotate(task_count=Count('task', filter=Q(task__completion_status=False)))
+        least_task_user = task_counts.order_by('task_count').first()
 
-        # 万が一、家族メンバーが存在しない場合は現在のユーザーを返す
-        return assigned_user or self.request.user
+        print("未完了タスク数:")
+        for member in task_counts:
+            print(f"{member.username}: {member.task_count} 未完了タスク")
+
+        return least_task_user
+
+    def get_next_user(self, current_user):
+        # 家族全員を取得
+        family_members = list(User.objects.filter(family_id=self.request.user.family_id).order_by('id'))
+
+        # 現在の担当者の次のユーザーを取得（ローテーション）
+        current_index = family_members.index(current_user)
+        next_index = (current_index + 1) % len(family_members)
+        next_user = family_members[next_index]
+
+        print(f"現在の担当者: {current_user.username}, 次の担当者: {next_user.username}")
+        return next_user
 
     def is_task_date(self, date, recurrence):
         """周期タスクが特定の日付に該当するかを判定"""
@@ -648,6 +712,7 @@ class RecurringTaskEditView(LoginRequiredMixin, UpdateView):
         context['family_members'] = User.objects.filter(family_id=self.request.user.family_id)
         context['day_range'] = range(1, 31 + 1)
         return context
+
 
 class IndividualTaskEditView(LoginRequiredMixin, UpdateView):
     model = Task
@@ -668,26 +733,31 @@ class IndividualTaskEditView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         # 担当者が未設定の場合に自動で割り当て
         if not form.cleaned_data.get('user'):
+            print("担当者未設定。未完了タスクが最も少ないメンバーを割り当てます。")
             # 家族メンバーの取得
             family_members = User.objects.filter(family_id=self.request.user.family_id)
             
-            # 前回のタスクの担当者を取得
-            last_task = Task.objects.filter(user__in=family_members).order_by('-due_datetime').first()
-            last_assignee = last_task.user if last_task else None  # 'assignee' を 'user' に変更
-
-            # タスク数が少ないメンバーを優先し、前回の担当者を除外
-            available_members = family_members.exclude(id=last_assignee.id) if last_assignee else family_members
-            assignee = available_members.annotate(task_count=Count('task')).order_by('task_count').first()
-
-            # もし全員が前回と同じ担当者なら、除外せずに最少タスク数のメンバーを割り当て
-            form.instance.user = assignee if assignee else last_assignee
+            if family_members.exists():
+                # 未完了タスクが最も少ないメンバーを選択
+                assigned_user = family_members.annotate(
+                    incomplete_task_count=Count('task', filter=Q(task__completion_status=False))
+                ).order_by('incomplete_task_count').first()
+                form.instance.user = assigned_user
+                print("自動割り当てされた担当者:", assigned_user)
+            else:
+                form.instance.user = self.request.user  # デフォルトで現在のユーザーを割り当て
+                print("家族メンバーがいないため、現在のユーザーを割り当て:", form.instance.user)
         
         return super().form_valid(form)
 
 class IndividualTaskDeleteView(LoginRequiredMixin, View):
     def get(self, request, task_id):
         task = get_object_or_404(Task, id=task_id, user=request.user)
-        return render(request, 'tasks/individual_task_delete.html', {'task': task})
+        estimated_time_hours = task.estimated_time / 60
+        return render(request, 'tasks/individual_task_delete.html', {
+            'task': task,
+            'estimated_time_hours': estimated_time_hours
+        })
     
     def post(self, request, task_id):
         task = get_object_or_404(Task, id=task_id, user=request.user)
@@ -712,16 +782,6 @@ class RecurringTaskDeleteView(LoginRequiredMixin, View):
     def post(self, request, task_id):
         try:
             recurring_task = get_object_or_404(Recurrence, id=task_id)
-
-            # 削除対象の周期タスクに基づいて生成された未来の日付の個別タスクを取得
-            future_tasks = Task.objects.filter(
-                recurrence=recurring_task,
-                scheduled_datetime__gte=timezone.now()
-            )
-
-            # 未来の個別タスクが存在する場合は削除
-            if future_tasks.exists():
-                future_tasks.delete()
 
             # 周期タスク自体を削除
             recurring_task.delete()
