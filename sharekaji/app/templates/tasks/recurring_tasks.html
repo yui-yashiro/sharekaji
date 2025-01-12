@@ -28,11 +28,11 @@
         {% for recurrence in recurrences %}
             <div class="task-box p-3 mb-3 border rounded">
                 <div class="task-details">
-                    <p><strong>家事内容：</strong>{{ recurrence.task_name }}</p>
+                    <p><strong>家事名：</strong>{{ recurrence.task_name }}</p>
                     <p><strong>担当者：</strong> {{ recurrence.user.username }}</p>
                     <p><strong>タスク開始日：</strong> {{ recurrence.start_date|date:"Y年m月d日" }}</p>
                     <p><strong>所要時間見込み：</strong>  {{ recurrence.formatted_time }}</p>
-                    <p><strong>対応完了期限：</strong> {{ recurrence.due_time|time }}</p>
+                    <p><strong>対応完了時間：</strong> {{ recurrence.due_time|time }}</p>
                     <p><strong>繰り返し周期：</strong> {{ recurrence.get_recurrence_type_display }}</p>
                     <p><strong>繰り返し終了日：</strong> {{ recurrence.end_date|date:"Y年m月d日" }}</p>
                 </div>
