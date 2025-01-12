@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate
 class SignupForm(UserCreationForm):
     class Meta:
         model = User
-        fields = ["name", "email", "password1", "password2"]
+        fields = ["username", "email", "password1", "password2"]
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
@@ -39,7 +39,7 @@ class AccountEditForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ['name', 'email', 'family_relationship']
+        fields = ['username', 'email', 'family_relationship']
     
     def clean(self):
         print("AccountEditFormのcleanが呼び出されました")
@@ -94,14 +94,12 @@ class RecurringTaskForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance:
-            # 各フィールドの初期値を統一的に設定
-            self.fields['start_date'].initial = self.instance.start_date
-            self.fields['due_time'].initial = self.instance.due_time
-            self.fields['estimated_time'].initial = self.instance.estimated_time
-            self.fields['recurrence_type'].initial = self.instance.recurrence_type
-            self.fields['weekday'].initial = self.instance.weekday if self.instance.weekday is not None else ''
-            self.fields['day_of_month'].initial = self.instance.day_of_month if self.instance.day_of_month is not None else ''
-            self.fields['end_date'].initial = self.instance.end_date
+            self.fields['weekday'].initial = (
+                self.instance.weekday if self.instance.recurrence_type == 1 else None
+            )
+            self.fields['day_of_month'].initial = (
+                self.instance.day_of_month if self.instance.recurrence_type == 2 else None
+            )
 
 class IndividualTaskForm(forms.ModelForm):
     user = forms.ModelChoiceField(queryset=User.objects.none(), required=False)
@@ -114,6 +112,8 @@ class IndividualTaskForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if family_id:
             self.fields['user'].queryset = User.objects.filter(family_id=family_id)
+        else:
+            self.fields['user'].queryset = User.objects.none()
 
 class ProgressForm(forms.ModelForm):
     class Meta:
