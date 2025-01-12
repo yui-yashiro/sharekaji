@@ -26,12 +26,8 @@ class UserManager(BaseUserManager):
 
 # ユーザーモデル
 class User(AbstractUser):
-    # 不要なフィールドを削除
-    username = None
-
-    name = models.CharField(max_length=32) # ユーザー名
+    username = models.CharField(max_length=32, null=True, unique=True) # ユーザー名
     email = models.EmailField(max_length=256, unique=True) # メールアドレス
-    password = models.CharField(max_length=100) # パスワード
     family_id = models.ForeignKey('Family', on_delete=models.SET_NULL, null=True, related_name="members")  # 家族ID
     profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True)   # プロフィール画像
     family_relationship = models.CharField(max_length=32, blank=True, null=True)  # 続柄
@@ -50,15 +46,17 @@ class User(AbstractUser):
         blank=True
     )
 
-    USERNAME_FIELD = "email"
+    USERNAME_FIELD = "username"
     EMAIL_FIELD = "email"
-    REQUIRED_FIELDS = ["name"]
+    REQUIRED_FIELDS = ["email"]
 
     objects = UserManager()
 
     class Meta:
         db_table = "users"
-        unique_together = ("family_id", "name")
+    
+    def __str__(self):
+        return self.username if self.username else self.email
 
 # families
 class Family(models.Model):
@@ -69,11 +67,14 @@ class Family(models.Model):
 
     class Meta:
         db_table = "families"
+    
+    def __str__(self):
+        return self.name
 
 # tasks
 class Task(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # usersとのリレーション
-    recurrence = models.ForeignKey('Recurrence', on_delete=models.SET_NULL, null=True, blank=True)  # 繰り返しタスクとのリレーション
+    recurrence = models.ForeignKey('Recurrence', on_delete=models.CASCADE, null=True, blank=True)  # 繰り返しタスクとのリレーション
     task_name = models.CharField(max_length=100)  # 家事タスク名
     scheduled_datetime = models.DateTimeField()  # 予定日時
     due_datetime = models.DateTimeField()  # 対応完了期限
@@ -86,16 +87,35 @@ class Task(models.Model):
 
     class Meta:
         db_table = 'tasks'
+    
+    def __str__(self):
+        return self.task_name
 
 # recurrences
 class Recurrence(models.Model):
+    RECURRENCE_CHOICES = [
+        (0, '日'),
+        (1, '週'),
+        (2, '月'),
+    ]
+
+    WEEKDAY_CHOICES = [
+        (0, '月曜日'),
+        (1, '火曜日'),
+        (2, '水曜日'),
+        (3, '木曜日'),
+        (4, '金曜日'),
+        (5, '土曜日'),
+        (6, '日曜日'),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)  # usersとのリレーション
     task_name = models.CharField(max_length=100)  # 家事タスク名
     start_date = models.DateField()  # 繰り返し開始日
     due_time = models.TimeField()  # タスク完了期限時刻
     estimated_time = models.IntegerField()  # 所要時間見込 (分単位)
-    recurrence_type = models.IntegerField()  # 繰り返し周期: 1 = 日, 2　= 週, 3　= 月
-    weekday = models.IntegerField(null=True, blank=True)  # 繰り返しの曜日（例: 日=1, 月=2, ...）
+    recurrence_type = models.IntegerField(choices=RECURRENCE_CHOICES, null=True, blank=True)  # 繰り返し周期: 0 = 日, 1　= 週, 2　= 月
+    weekday = models.IntegerField(choices=WEEKDAY_CHOICES, null=True, blank=True)   # 繰り返しの曜日（例: 月=0, 火=1, ...日=6）
     day_of_month = models.IntegerField(null=True, blank=True)  # 日付指定（例: 毎月15日）
     end_date = models.DateField(null=True, blank=True)  # 繰り返し終了日
     created_at = models.DateTimeField(auto_now_add=True)  # タスク作成日時
@@ -103,6 +123,14 @@ class Recurrence(models.Model):
 
     class Meta:
         db_table = 'recurrences'
+    
+    def get_recurrence_type_display(self):
+        """recurrence_type の数値をラベルに変換"""
+        return dict(self.RECURRENCE_CHOICES).get(self.recurrence_type, "None")
+    
+    def __str__(self):
+        recurrence_label = dict(self.RECURRENCE_CHOICES).get(self.recurrence_type, 'None')
+        return f"{self.task_name} (Type: {recurrence_label})"
 
 # comments
 class Comment(models.Model):
@@ -114,6 +142,9 @@ class Comment(models.Model):
 
     class Meta:
         db_table = 'comments'
+    
+    def __str__(self):
+        return f"Comment by {self.user.username} on {self.task.task_name}"
 
 # reactions
 class Reaction(models.Model):
@@ -131,3 +162,6 @@ class Reaction(models.Model):
     class Meta:
         db_table = 'reactions'
         unique_together = ('task', 'user', 'reaction_type')
+    
+    def __str__(self):
+        return f"{self.user.username} reacted {self.get_reaction_type_display()} to {self.task.task_name}"
