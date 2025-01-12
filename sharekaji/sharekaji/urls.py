@@ -17,11 +17,12 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
-from app.views import SignUpView, LoginView, HomeView, TodayTasksView, RecurringTaskListView, RecurringTaskCreateView, Individual_TaskCreateView, TaskAnalysisView, MyPageView, AccountEditView, FamilyEditView, SignupInviteView, FamilyInviteUrlView, AccountDeleteView, RecurringTaskEditView, IndividualTaskEditView, IndividualTaskDeleteView, RecurringTaskDeleteView, generate_invite_url, signup_family_invite, toggle_reaction, add_comment, delete_comment
+from app.views import SignUpView, LoginView, HomeView, TodayTasksView, RecurringTaskListView, RecurringTaskCreateView, Individual_TaskCreateView, TaskAnalysisView, MyPageView, AccountEditView, FamilyEditView, SignupInviteView, FamilyInviteUrlView, AccountDeleteView, RecurringTaskEditView, IndividualTaskEditView, IndividualTaskDeleteView, RecurringTaskDeleteView, generate_invite_url, signup_family_invite, toggle_reaction, add_comment, delete_comment, portfolio
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('',LoginView.as_view(), name="login"),
+    path('', portfolio, name='portfolio'),
+    path('login',LoginView.as_view(), name="login"),
     path('signup/',SignUpView.as_view(), name="signup"),
     path('home/',HomeView.as_view(), name="home"),
     path('home/<int:year>/<int:month>/', HomeView.as_view(), name="home_with_date"),

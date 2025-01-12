@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio -シェアカジ</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/portfolio.css' %}">
+    <link rel="icon" href="{% static 'images/favicon.png' %}">
+</head>
+<body class="portfolio-page">
+    <div class="container">
+        <h1>作品No.1: シェアカジ</h1>
+    </div>
+
+    <div class="screenshot">
+        <img src="/media/portfolio.jpg" alt="アプリのスクショ">
+    </div>
+    
+    <div class="portfolio-text">
+        <p>シェアカジは、家事分担を見える化し、家庭内のタスクを効率的に管理できるアプリケーションです。</p>
+        <p>家事の公平な分担やそれに伴う家族間のコミュニケーションをサポートし、家庭内の連携を強化することを期待します。</p>
+        <p>また、家族間のストレス軽減と円滑な家事進行を目指します。</p>
+    </div>
+
+    <div class="project-links">
+        <a href="media/portfolio/シェアカジ_企画書・画面設計図.pdf">企画書・画面設計図</a>
+        <a href="media/portfolio/シェアカジ_画面遷移図.svg">画面遷移図</a>
+        <a href="media/portfolio/シェアカジ_ER図.svg">ER図</a>
+    </div>
+
+    <div>
+        <form action="{% url 'login' %}" method="get">
+            <button type="submit" class="access-button">アプリにアクセス</button>
+        </form>
+    </div>
+</body>
+</html>

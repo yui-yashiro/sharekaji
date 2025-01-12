@@ -865,3 +865,6 @@ def toggle_reaction(request, task_id):
 
     except (json.JSONDecodeError, ValueError, TypeError) as e:
         return JsonResponse({"error": "Invalid data received."}, status=400)
+    
+def portfolio(request):
+    return render(request, 'portfolio.html')
