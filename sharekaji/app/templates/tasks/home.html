@@ -26,7 +26,7 @@
         {% if family_notifications %}
         <div class="notification-success">
             <h5 class="success-title">
-                 {{ family_notifications.0.user.name }}さんが以下の家事タスクを完了しました！感謝の気持ちを伝えましょう！
+                 {{ family_notifications.0.user.username }}さんが以下の家事タスクを完了しました！感謝の気持ちを伝えましょう！
             </h5>
             <ul>
                 {% for notification in family_notifications %}

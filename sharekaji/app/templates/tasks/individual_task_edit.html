@@ -2,9 +2,14 @@
 
 {% block title %}個別タスク編集{% endblock %}
 
+{% block head %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/task.css' %}">
+{% endblock %}
+
 {% block content %}
     <div class="container mt-4">
-        <h4 class="page-title"><strong>個別タスク編集</strong></h4>
+        <h4 class="page-title">個別タスク編集</h4>
         <form id="editTaskForm" method="post" action="{% url 'individual_task_edit' task.id %}">
             {% csrf_token %}
             {% if form.errors %}
@@ -22,11 +27,11 @@
             </div>
 
             <div class="mb-3">
-                <label for="assignee" class="form-label">担当</label>
-                <select class="form-control" id="assignee" name="assignee">
-                    <option value=""></option>
+                <label for="user" class="form-label">担当</label>
+                <select class="form-control" id="user" name="user">
+                    <option value="">(未指定)</option>
                     {% for member in family_members %}
-                        <option value="{{ member.id }}" {% if form.user.value == member.id %}selected{% endif %}>{{ member.name }}</option>
+                        <option value="{{ member.id }}" {% if form.user.value == member.id %}selected{% endif %}>{{ member.username }}</option>
                     {% endfor %}
                 </select>
             </div>

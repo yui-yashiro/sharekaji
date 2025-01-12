@@ -9,7 +9,7 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h4 class="page-title"><strong>周期タスク一覧</strong></h4>
+    <h4 class="page-title">周期タスク一覧</h4>
     <div class="d-flex justify-content-end mb-3">
         <a href="{% url 'add_recurring_tasks' %}" class="add-task-button">＋周期タスクを追加する</a>
     </div>
@@ -29,16 +29,16 @@
             <div class="task-box p-3 mb-3 border rounded">
                 <div class="task-details">
                     <p><strong>家事内容：</strong>{{ recurrence.task_name }}</p>
-                    <p><strong>担当者：</strong> {{ recurrence.user.name }}</p>
+                    <p><strong>担当者：</strong> {{ recurrence.user.username }}</p>
                     <p><strong>タスク開始日：</strong> {{ recurrence.start_date|date:"Y年m月d日" }}</p>
                     <p><strong>所要時間見込み：</strong>  {{ recurrence.formatted_time }}</p>
                     <p><strong>対応完了期限：</strong> {{ recurrence.due_time|time }}</p>
-                    <p><strong>繰り返し周期：</strong> {{ recurrence.recurrence_type_display }}</p>
+                    <p><strong>繰り返し周期：</strong> {{ recurrence.get_recurrence_type_display }}</p>
                     <p><strong>繰り返し終了日：</strong> {{ recurrence.end_date|date:"Y年m月d日" }}</p>
                 </div>
 
                 <div class="task-actions d-flex justify-content-end">
-                    <a href="{% url 'recurring_task_edit' recurrence.id %}" class="btn btn-primary btn-sm mx-1">編集する</a>
+                    <a href="{% url 'recurring_task_edit' recurrence.id %}" class="btn btn-secondary btn-sm mx-1">編集する</a>
                     <a href="{% url 'recurring_task_delete' recurrence.id %}" class="btn btn-danger btn-sm mx-1">削除する</a>
                 </div>
             </div>

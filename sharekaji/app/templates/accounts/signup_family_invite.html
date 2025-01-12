@@ -15,7 +15,7 @@
                 {% csrf_token %}
                 <div class="form-container">
                     <div class="form-group">
-                        名前/ニックネーム <input type="text" name="name" value="{{ form.name.value|default:'' }}">
+                        名前/ニックネーム <input type="text" name="username" value="{{ form.username.value|default:'' }}">
                     </div>
                     <div class="form-group">
                         メールアドレス <input type="email" name="email" value="{{ form.email.value|default:'' }}">

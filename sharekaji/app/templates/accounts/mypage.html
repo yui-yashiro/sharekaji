@@ -30,7 +30,7 @@
     <div class="container">
         <div class="row mb-3 align-items-center">
             <div class="col-md-3">
-                <h5><span class="title">名前/ニックネーム：</span>{{ user.name }}</h5>
+                <h5><span class="title">名前/ニックネーム：</span>{{ user.username }}</h5>
             </div>
             <div class="col-md-8">
                 <a href="{% url 'account_edit' %}">アカウント情報変更</a>
@@ -63,11 +63,11 @@
             {% for member in family_members %}
             <li class="list-group-item">
                 {% if member.profile_image %}
-                    <img src="{{ member.profile_image.url }}" alt="{{ member.name }}">
+                    <img src="{{ member.profile_image.url }}" alt="{{ member.username }}">
                 {% else %}
-                    <img src="{% get_media_prefix %}default_profile_image.png" alt="{{ member.name }}">
+                    <img src="{% get_media_prefix %}default_profile_image.png" alt="{{ member.username }}">
                 {% endif %}
-                {{ member.name }}（{{ member.family_relationship|default:"続柄が設定されていません" }})
+                {{ member.username }}（{{ member.family_relationship|default:"続柄が設定されていません" }})
             </li>
             {% endfor %}
         </ul>
@@ -75,7 +75,7 @@
 
     <!-- 招待リンクとログアウト -->
     <div class="invite-logout-container">
-        <a href="{% url 'family_invite_url' %}" class="btn btn-primary invite-button">家族を招待</a>
+        <a href="{% url 'family_invite_url' %}" class="invite-button">家族を招待</a>
         <a href="{% url 'login' %}" class="logout-button">ログアウト</a>
     </div>
 </div>

@@ -2,9 +2,14 @@
 
 {% block title %}周期タスク編集{% endblock %}
 
+{% block head %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/task.css' %}">
+{% endblock %}
+
 {% block content %}
     <div class="container mt-4">
-        <h5>周期タスク登録</h5>
+        <h4 class="page-title">周期タスク編集</h4>
         <form id="recurringTaskEditForm" method="post" action="{% url 'recurring_task_edit' recurrence.id %}">
              {% csrf_token %}
             <div class="mb-3">
@@ -16,9 +21,9 @@
             <div class="mb-3">
                 <label for="assignee" class="form-label">担当</label>
                 <select class="form-control" id="user" name="user">
-                    <option value=""></option>
+                    <option value="">(未指定)</option>
                     {% for member in family_members %}
-                        <option value="{{ member.id }}" {% if form.user.value == member.id %}selected{% endif %}>{{ member.name }}</option>
+                        <option value="{{ member.id }}" {% if form.user.value == member.id %}selected{% endif %}>{{ member.username }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -86,19 +91,25 @@
                 <input type="date" class="form-control" id="end_date" name="end_date" value="{{ form.end_date.initial|date:'Y-m-d' }}"  required>
             </div>
 
-            <div class="d-flex justify-content-between">
-                <button type="submit" class="btn btn-primary">登録</button>
+            <div class="d-flex justify-content-between align-items-centern">
+                <div class="text-center flex-grow-1">
+                    <button type="button" class="btn btn-primary" onclick="confirmSave()">保存</button>
+                </div>
+                <div>
+                    <a href="{% url 'recurring_tasks' %}" class="btn btn-secondary">戻る</a>
+                </div>
             </div>
         </form>
-        <a href="{% url 'recurring_tasks' %}" class="btn btn-secondary mt-3">戻る</a>
     </div> 
 
-    <!--暗幕とポップアップ-->
-    <div class="modal-overlay" id="modalOverlay" style="display: none;" onclick="closePopup()"></div>
-    <div id="confirmBox" class="recurring-task-confilm-box" style="display: none;">
-           <p>この変更を未来のすべてのタスクに適用してもよろしいですか？</p>
-           <button class="ok-button" onclick="submitForm()">OK</button>
-           <button class="cancel-button" onclick="closePopup()">キャンセル</button>
+    <!-- 背景の暗幕 -->
+    <div class="modal-overlay" onclick="closePopup()" id="modalOverlay"></div>
+
+    <!-- 保存確認ポップアップ -->
+    <div id="confirmBox" class="task-save-confirm-box">
+        <p>この変更を未来日の全てのタスクに適用してもよろしいですか？</p>
+        <button onclick="submitForm()" class="ok-button">OK</button>
+        <button onclick="closePopup()" class="cancel-button">キャンセル</button>
     </div>
 {% endblock %}
 

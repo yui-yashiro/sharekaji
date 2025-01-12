@@ -35,7 +35,7 @@
                     <div class="task-header-box p-3 border rounded">
                         <div class="task-details">
                             <p><strong>家事内容：</strong> {{ task.task_name }}</p>
-                            <p><strong>担当者：</strong> {{ task.user.name }}</p>
+                            <p><strong>担当者：</strong> {{ task.user.username }}</p>
                             <p><strong>所要時間見込み：</strong> {{ task.estimated_time_hours|floatformat:1 }}時間</p>
                         </div>
                         <div class="task-deadline-and-actions">
@@ -96,7 +96,7 @@
                                         class="rounded-circle mr-2" 
                                         style="width: 40px; height: 40px;">
                                     <div>
-                                        <strong>{{ comment.user.name }}</strong> <span class="text-muted" style="font-size: 0.9em;">{{ comment.created_at|date:"Y/m/d H:i" }}</span>
+                                        <strong>{{ comment.user.username }}</strong> <span class="text-muted" style="font-size: 0.9em;">{{ comment.created_at|date:"Y/m/d H:i" }}</span>
                                         <p class="mb-1">{{ comment.comment }}</p>
                                     </div>
                                     {% if comment.user == request.user %}

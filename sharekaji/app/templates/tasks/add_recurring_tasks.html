@@ -2,9 +2,14 @@
 
 {% block title %}周期タスク登録{% endblock %}
 
+{% block head %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/task.css' %}">
+{% endblock %}
+
 {% block content %}
     <div class="container mt-4">
-        <h4 class="page-title"><strong>周期タスク登録</strong></h4>
+        <h4 class="page-title">周期タスク登録</h4>
         <form method="post" action="{% url 'add_recurring_tasks' %}">
              {% csrf_token %}
             <div class="mb-3">
@@ -15,10 +20,10 @@
             <!-- 担当者選択フィールド: family_members を表示 -->
             <div class="mb-3">
                 <label for="assignee" class="form-label">担当</label>
-                <select class="form-control" id="assignee" name="assignee">
-                    <option value=""></option>
+                <select class="form-control" id="user" name="user">
+                    <option value="">(未指定)</option>
                     {% for member in family_members %}
-                        <option value="{{ member.id }}">{{ member.name }}</option>
+                        <option value="{{ member.id }}">{{ member.username }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -53,9 +58,9 @@
             <div class="mb-3">
                 <label for="recurrence_type" class="form-label">繰り返し周期</label>
                 <select class="form-control" id="recurrence_type" name="recurrence_type">
-                    <option value="1">日</option>
-                    <option value="2">週</option>
-                    <option value="3">月</option>
+                    <option value="0">日</option>
+                    <option value="1">週</option>
+                    <option value="2">月</option>
                 </select>
             </div>
 
@@ -99,29 +104,31 @@
 
     <!-- **JavaScriptで繰り返し周期に応じてフィールドの表示を切り替え** -->
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // 初期表示のために関数を一度実行
-            toggleRecurrenceFields();
+    document.addEventListener("DOMContentLoaded", function() {
+        toggleRecurrenceFields();
+        document.getElementById("recurrence_type").addEventListener("change", toggleRecurrenceFields);
+    });
 
-            // recurrence_type の変更時に toggleRecurrenceFields を実行
-            document.getElementById("recurrence_type").addEventListener("change", toggleRecurrenceFields);
-        });
+    function toggleRecurrenceFields() {
+        const recurrenceType = document.getElementById("recurrence_type").value;
+        const weekdays = document.getElementById("weekdays");
+        const monthdays = document.getElementById("monthdays");
 
-        function toggleRecurrenceFields() {
-            const recurrenceType = document.getElementById("recurrence_type").value;
-            const weekdays = document.getElementById("weekdays");
-            const monthdays = document.getElementById("monthdays");
-
-            if (recurrenceType == "2") { // 週
-                weekdays.style.display = "block";
-                monthdays.style.display = "none";
-            } else if (recurrenceType == "3") { // 月
-                weekdays.style.display = "none";
-                monthdays.style.display = "block";
-            } else { // 日
-                weekdays.style.display = "none";
-                monthdays.style.display = "none";
-            }
+        // 日 (0) の場合
+        if (recurrenceType == "0") {
+            weekdays.style.display = "none";
+            monthdays.style.display = "none";
         }
-    </script>
+        // 週 (1) の場合
+        else if (recurrenceType == "1") {
+            weekdays.style.display = "block";
+            monthdays.style.display = "none";
+        }
+        // 月 (2) の場合
+        else if (recurrenceType == "2") {
+            weekdays.style.display = "none";
+            monthdays.style.display = "block";
+        }
+    }
+</script>
 {% endblock %}

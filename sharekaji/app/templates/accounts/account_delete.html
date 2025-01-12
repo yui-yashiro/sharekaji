@@ -3,70 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>新規アカウント削除</title>
+    <title>アカウント削除</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/account.css' %}">
 </head>
 <body>
     <h2 class="title">シェアカジ</h2>
     <div class="account-delete-container">
-        {% if has_incomplete_tasks %}
-            <!-- 未完了タスクがある場合の警告メッセージ -->
-            <div class="warning">
-                ⚠️ 未完了のタスクが存在しています。タスクを完了させるか、他のメンバーに割り当て直してください。
-            </div>
+        <!-- エラーメッセージ表示 -->
+        {% if error_message %}
+        <div class="warning">⚠️ {{ error_message }}</div>
         {% endif %}
+
         <h3><strong>アカウント削除の確認</strong></h3>
         <p>アカウントを削除する前に、以下のフォームにパスワードを入力してください。</p>
-        
-        <form id="deleteForm" method="post" action="{% url 'account_delete' %}">
+
+        <!-- 削除フォーム -->
+        <form method="post" action="{% url 'account_delete' %}">
             {% csrf_token %}
             <div class="form-group">
                 <label for="password">パスワード：</label>
                 <input type="password" id="password" name="password" required>
             </div>
-            <input type="hidden" id="confirmInput" name="confirm" value="false">
+            <input type="hidden" name="confirm" value="false">
             <div class="account-delete-button-group">
-                <button type="submit" onclick="event.preventDefault(); confirmDeletion()">アカウントを削除する</button>
+                <button type="submit">アカウントを削除する。</button>
             </div>
         </form>
 
         <a href="{% url 'mypage' %}" class="back-link">キャンセル</a>
     </div>
-    
-    <!-- 背景の暗幕 -->
-    <div class="modal-overlay" onclick="closePopup()" id="modalOverlay"></div>
 
-    <!-- 削除確認ポップアップ -->
-    <div id="confirmBox" class="account-delete-confirm-box">
+    <!-- 確認ポップアップ -->
+    {% if show_confirm_popup %}
+    <div class="modal-overlay" id="modalOverlay" style="display: block;"></div>
+    <div id="confirmBox" class="account-delete-confirm-box" style="display: block;">
         <p>アカウントを削除してもよろしいですか？</p>
-        <button onclick="submitForm()" class="ok-button">OK</button>
-        <button onclick="closePopup()" class="cancel-button">キャンセル</button>
+        <form method="post" action="{% url 'account_delete' %}">
+            {% csrf_token %}
+            <input type="hidden" name="password" value="{{ request.POST.password }}">
+            <input type="hidden" name="confirm" value="true">
+            <button type="submit" class="ok-button">OK</button>
+            <button type="button" onclick="closePopup()" class="cancel-button">キャンセル</button>
+        </form>
     </div>
+    {% endif %}
 
     <script>
-    function confirmDeletion() {
-        const passwordField = document.getElementById('password');
-        if (passwordField.value === "") {
-            alert("パスワードを入力してください。");
-            return;
-        }
-
-        // ポップアップと暗幕を表示
-        document.getElementById('modalOverlay').style.display = 'block';
-        document.getElementById('confirmBox').style.display = 'block';
-    }
-
     function closePopup() {
-        // ポップアップと暗幕を非表示にする
         document.getElementById('modalOverlay').style.display = 'none';
         document.getElementById('confirmBox').style.display = 'none';
-    }
-
-    function submitForm() {
-        // confirm フィールドを true に設定して送信
-        document.getElementById('confirmInput').value = 'true';
-        document.getElementById('deleteForm').submit();
     }
     </script>
 </body>
