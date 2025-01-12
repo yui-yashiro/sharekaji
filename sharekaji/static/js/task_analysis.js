@@ -74,17 +74,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 },
                 datalabels: {
-                    anchor: 'end',
-                    align: 'end',
-                    formatter: (value, context) => {
-                        const percentage = formatPercentage(value, totalIncomplete);
-                        return `${context.chart.data.labels[context.dataIndex]}\n${percentage}`;
-                    },
-                    color: '#000'
+                    display:false,
                 }
             }
         },
-        plugins: [ChartDataLabels]
     });
 
     // グラフ切り替え機能
