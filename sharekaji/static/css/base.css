@@ -6,7 +6,7 @@
     padding: 10px 15px;
 }
 .navbar {
-    background-color: #b9ffff;
+    background-color: #AEE6D0;
     padding: 5px 0;
 }
 
@@ -16,11 +16,7 @@
 }
 
 .navbar .nav-link:hover {
-    color: #0a06fb;
-}
-
-.navbar .navbar-brand:hover {
-    color: #0a06fb;
+    color: white;
 }
 
 .fc-event-time {
