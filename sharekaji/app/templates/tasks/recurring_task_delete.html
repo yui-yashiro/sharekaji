@@ -12,11 +12,11 @@
     <h4 class="page-title">タスクの削除確認</h4>
     <p class="delete-alert">以下のタスクを本当に削除してよろしいですか？こちらを削除すると関連する未来日のタスクが全て削除されます。</p>
     <div class="task-delete-details">
-        <div><strong>家事内容：</strong>{{ recurrence.task_name }}</div>
+        <div><strong>家事名：</strong>{{ recurrence.task_name }}</div>
         <div><strong>担当者：</strong> {{ recurrence.user.username }}</div>
         <div><strong>タスク開始日：</strong> {{ recurrence.start_date|date:"Y年m月d日" }}</div>
         <div><strong>所要時間見込み：</strong>  {{ recurrence.formatted_time }}</div>
-        <div><strong>対応完了期限：</strong> {{ recurrence.due_time|time }}</div>
+        <div><strong>対応完了時間：</strong> {{ recurrence.due_time|time }}</div>
         <div><strong>繰り返し周期：</strong> {{ recurrence.get_recurrence_type_display }}</div>
         <div><strong>繰り返し終了日：</strong> {{ recurrence.end_date|date:"Y年m月d日" }}</div>
     </div>
